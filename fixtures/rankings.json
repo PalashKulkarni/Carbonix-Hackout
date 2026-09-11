@@ -1,0 +1,13 @@
+{
+  "period": "2025",
+  "sort": "total",
+  "items": [
+    { "supplier_id": "sup_steelco", "name": "SteelCo India", "rank": 1, "total_co2e_kg": 89850, "intensity_kg_per_unit": 3594, "carbon_risk": "high" },
+    { "supplier_id": "sup_aluco", "name": "AluCo Extrusions", "rank": 2, "total_co2e_kg": 82136, "intensity_kg_per_unit": 10267, "carbon_risk": "high" },
+    { "supplier_id": "sup_plastix", "name": "Plastix Components", "rank": 3, "total_co2e_kg": 43164, "intensity_kg_per_unit": 3597, "carbon_risk": "high" },
+    { "supplier_id": "sup_cementa", "name": "Cementa Works", "rank": 4, "total_co2e_kg": 41780, "intensity_kg_per_unit": 1044.5, "carbon_risk": "low" },
+    { "supplier_id": "sup_quarry", "name": "Deccan Quarry", "rank": 5, "total_co2e_kg": 20720, "intensity_kg_per_unit": 1381.33, "carbon_risk": "low" },
+    { "supplier_id": "sup_packright", "name": "PackRight Films", "rank": 6, "total_co2e_kg": 7796.8, "intensity_kg_per_unit": 2598.93, "carbon_risk": "medium" }
+  ],
+  "total": 6
+}

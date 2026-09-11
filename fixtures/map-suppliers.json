@@ -1,0 +1,11 @@
+{
+  "items": [
+    { "supplier_id": "sup_steelco", "name": "SteelCo India", "latitude": 19.076, "longitude": 72.8777, "total_co2e_kg": 89850, "carbon_risk": "high", "tier": 1 },
+    { "supplier_id": "sup_aluco", "name": "AluCo Extrusions", "latitude": 18.5204, "longitude": 73.8567, "total_co2e_kg": 82136, "carbon_risk": "high", "tier": 1 },
+    { "supplier_id": "sup_plastix", "name": "Plastix Components", "latitude": 13.0827, "longitude": 80.2707, "total_co2e_kg": 43164, "carbon_risk": "high", "tier": 2 },
+    { "supplier_id": "sup_cementa", "name": "Cementa Works", "latitude": 23.0225, "longitude": 72.5714, "total_co2e_kg": 41780, "carbon_risk": "low", "tier": 2 },
+    { "supplier_id": "sup_quarry", "name": "Deccan Quarry", "latitude": 21.1458, "longitude": 79.0882, "total_co2e_kg": 20720, "carbon_risk": "low", "tier": 3 },
+    { "supplier_id": "sup_packright", "name": "PackRight Films", "latitude": 12.9716, "longitude": 77.5946, "total_co2e_kg": 7796.8, "carbon_risk": "medium", "tier": 3 }
+  ],
+  "total": 6
+}

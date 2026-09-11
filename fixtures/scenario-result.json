@@ -1,0 +1,37 @@
+{
+  "period": "2025",
+  "recycled_material_pct": 40,
+  "renewable_energy_pct": 60,
+  "rail_transport_pct": 50,
+  "current_total_co2e_kg": 285446.8,
+  "projected_total_co2e_kg": 183990.75,
+  "delta_co2e_kg": 101456.05,
+  "delta_pct": 35.54,
+  "by_category": [
+    {
+      "emission_category": "energy",
+      "current_co2e_kg": 73520,
+      "projected_co2e_kg": 33456
+    },
+    {
+      "emission_category": "transport",
+      "current_co2e_kg": 8698.8,
+      "projected_co2e_kg": 4854.75
+    },
+    {
+      "emission_category": "material",
+      "current_co2e_kg": 199170,
+      "projected_co2e_kg": 141622
+    },
+    {
+      "emission_category": "manufacturing",
+      "current_co2e_kg": 3440,
+      "projected_co2e_kg": 3440
+    },
+    {
+      "emission_category": "logistics",
+      "current_co2e_kg": 618,
+      "projected_co2e_kg": 618
+    }
+  ]
+}

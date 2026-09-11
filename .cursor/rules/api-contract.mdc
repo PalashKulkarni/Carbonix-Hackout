@@ -1,0 +1,13 @@
+---
+description: API and fixture contract — keep frontend, backend, and ML in sync
+alwaysApply: true
+---
+
+# API contract
+
+- Implement only routes in `docs/API_CONTRACT.md`. Match fixture shapes exactly.
+- Frontend: mock with `fixtures/*.json` until the API exists (`GET /dashboard` → `dashboard.json`, etc.).
+- Backend: response bodies must match those fixtures for demo seed.
+- Model B output = `Recommendation` in glossary / `fixtures/recommendations.json`.
+- Lists: `{ "items": [...], "total": N }` unless the contract shows a different wrapper (`/dashboard`, `/hierarchy`).
+- Query `period` defaults to `2025`. Auth: `POST /auth/demo` → Bearer token.

@@ -1,0 +1,78 @@
+{
+  "period": "2025",
+  "items": [
+    {
+      "recommendation_id": "rec_aluco_recycled",
+      "org_id": "org_apex",
+      "supplier_id": "sup_aluco",
+      "action_type": "recycled_material",
+      "title": "Switch AluCo to recycled aluminium",
+      "description": "Replace virgin aluminium factor with recycled_aluminium and re-run the engine.",
+      "current_co2e_kg": 82136,
+      "projected_co2e_kg": 28216,
+      "delta_co2e_kg": 53920,
+      "status": "open"
+    },
+    {
+      "recommendation_id": "rec_steelco_renewable",
+      "org_id": "org_apex",
+      "supplier_id": "sup_steelco",
+      "action_type": "renewable_energy",
+      "title": "Move SteelCo from coal grid to renewable",
+      "description": "Set electricity_source to grid_renewable.",
+      "current_co2e_kg": 89850,
+      "projected_co2e_kg": 50850,
+      "delta_co2e_kg": 39000,
+      "status": "open"
+    },
+    {
+      "recommendation_id": "rec_steelco_recycled",
+      "org_id": "org_apex",
+      "supplier_id": "sup_steelco",
+      "action_type": "recycled_material",
+      "title": "Switch SteelCo to recycled steel",
+      "description": "Use recycled_steel factor for material_quantity_kg.",
+      "current_co2e_kg": 89850,
+      "projected_co2e_kg": 53600,
+      "delta_co2e_kg": 36250,
+      "status": "open"
+    },
+    {
+      "recommendation_id": "rec_plastix_renewable",
+      "org_id": "org_apex",
+      "supplier_id": "sup_plastix",
+      "action_type": "renewable_energy",
+      "title": "Move Plastix off coal grid",
+      "description": "Set electricity_source to grid_renewable.",
+      "current_co2e_kg": 43164,
+      "projected_co2e_kg": 31464,
+      "delta_co2e_kg": 11700,
+      "status": "open"
+    },
+    {
+      "recommendation_id": "rec_aluco_sea",
+      "org_id": "org_apex",
+      "supplier_id": "sup_aluco",
+      "action_type": "modal_shift",
+      "title": "Shift AluCo inbound freight from air to sea",
+      "description": "Set transport_mode to sea; keep distance.",
+      "current_co2e_kg": 82136,
+      "projected_co2e_kg": 75752,
+      "delta_co2e_kg": 6384,
+      "status": "open"
+    },
+    {
+      "recommendation_id": "rec_quarry_renewable",
+      "org_id": "org_apex",
+      "supplier_id": "sup_quarry",
+      "action_type": "renewable_energy",
+      "title": "Move Deccan Quarry off coal grid",
+      "description": "Set electricity_source to grid_renewable.",
+      "current_co2e_kg": 20720,
+      "projected_co2e_kg": 14480,
+      "delta_co2e_kg": 6240,
+      "status": "open"
+    }
+  ],
+  "total": 6
+}

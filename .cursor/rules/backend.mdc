@@ -1,0 +1,14 @@
+---
+description: FastAPI, Postgres, carbon engine, and ingest
+globs: backend/**/*
+alwaysApply: false
+---
+
+# Backend
+
+- FastAPI + Pydantic, PostgreSQL, SQLAlchemy 2, Alembic. Schemas follow `docs/DATA_MODEL.md`.
+- Carbon math lives in `backend/engine/` per `docs/CARBON_ENGINE.md`. Recalculate on supplier save, CSV, factor edit, demo seed.
+- CSV columns: `docs/CSV_FORMAT.md`. After ingest, run Model A only for missing activity, then the engine.
+- Golden test: `sup_steelco` totals in `fixtures/emissions.json` given `fixtures/factors.json`.
+- Do not change response shapes without updating `docs/API_CONTRACT.md` and fixtures.
+- Skip `backend/ml/**` conventions here; see the ML rule.

@@ -1,0 +1,225 @@
+{
+  "items": [
+    {
+      "factor_id": "fac_mat_steel",
+      "org_id": null,
+      "factor_category": "material",
+      "code": "steel",
+      "factor_kg_co2e_per_unit": 1.85,
+      "unit": "kg",
+      "source": "Demo ICE-like factors",
+      "year": 2024
+    },
+    {
+      "factor_id": "fac_mat_aluminium",
+      "org_id": null,
+      "factor_category": "material",
+      "code": "aluminium",
+      "factor_kg_co2e_per_unit": 8.24,
+      "unit": "kg",
+      "source": "Demo ICE-like factors",
+      "year": 2024
+    },
+    {
+      "factor_id": "fac_mat_plastic",
+      "org_id": null,
+      "factor_category": "material",
+      "code": "plastic",
+      "factor_kg_co2e_per_unit": 2.5,
+      "unit": "kg",
+      "source": "Demo ICE-like factors",
+      "year": 2024
+    },
+    {
+      "factor_id": "fac_mat_cement",
+      "org_id": null,
+      "factor_category": "material",
+      "code": "cement",
+      "factor_kg_co2e_per_unit": 0.9,
+      "unit": "kg",
+      "source": "Demo ICE-like factors",
+      "year": 2024
+    },
+    {
+      "factor_id": "fac_mat_other",
+      "org_id": null,
+      "factor_category": "material",
+      "code": "other",
+      "factor_kg_co2e_per_unit": 2.0,
+      "unit": "kg",
+      "source": "Demo fallback",
+      "year": 2024
+    },
+    {
+      "factor_id": "fac_mat_recycled_steel",
+      "org_id": null,
+      "factor_category": "material",
+      "code": "recycled_steel",
+      "factor_kg_co2e_per_unit": 0.4,
+      "unit": "kg",
+      "source": "Demo recycled",
+      "year": 2024
+    },
+    {
+      "factor_id": "fac_mat_recycled_aluminium",
+      "org_id": null,
+      "factor_category": "material",
+      "code": "recycled_aluminium",
+      "factor_kg_co2e_per_unit": 1.5,
+      "unit": "kg",
+      "source": "Demo recycled",
+      "year": 2024
+    },
+    {
+      "factor_id": "fac_mat_recycled_plastic",
+      "org_id": null,
+      "factor_category": "material",
+      "code": "recycled_plastic",
+      "factor_kg_co2e_per_unit": 0.9,
+      "unit": "kg",
+      "source": "Demo recycled",
+      "year": 2024
+    },
+    {
+      "factor_id": "fac_en_grid_coal",
+      "org_id": null,
+      "factor_category": "energy",
+      "code": "grid_coal",
+      "factor_kg_co2e_per_unit": 0.82,
+      "unit": "kwh",
+      "source": "Demo grid",
+      "year": 2024
+    },
+    {
+      "factor_id": "fac_en_grid_mixed",
+      "org_id": null,
+      "factor_category": "energy",
+      "code": "grid_mixed",
+      "factor_kg_co2e_per_unit": 0.45,
+      "unit": "kwh",
+      "source": "Demo grid",
+      "year": 2024
+    },
+    {
+      "factor_id": "fac_en_grid_renewable",
+      "org_id": null,
+      "factor_category": "energy",
+      "code": "grid_renewable",
+      "factor_kg_co2e_per_unit": 0.04,
+      "unit": "kwh",
+      "source": "Demo grid",
+      "year": 2024
+    },
+    {
+      "factor_id": "fac_en_onsite_solar",
+      "org_id": null,
+      "factor_category": "energy",
+      "code": "onsite_solar",
+      "factor_kg_co2e_per_unit": 0.02,
+      "unit": "kwh",
+      "source": "Demo solar",
+      "year": 2024
+    },
+    {
+      "factor_id": "fac_tr_road",
+      "org_id": null,
+      "factor_category": "transport",
+      "code": "road",
+      "factor_kg_co2e_per_unit": 0.12,
+      "unit": "tonne_km",
+      "source": "Demo freight",
+      "year": 2024
+    },
+    {
+      "factor_id": "fac_tr_rail",
+      "org_id": null,
+      "factor_category": "transport",
+      "code": "rail",
+      "factor_kg_co2e_per_unit": 0.03,
+      "unit": "tonne_km",
+      "source": "Demo freight",
+      "year": 2024
+    },
+    {
+      "factor_id": "fac_tr_sea",
+      "org_id": null,
+      "factor_category": "transport",
+      "code": "sea",
+      "factor_kg_co2e_per_unit": 0.015,
+      "unit": "tonne_km",
+      "source": "Demo freight",
+      "year": 2024
+    },
+    {
+      "factor_id": "fac_tr_air",
+      "org_id": null,
+      "factor_category": "transport",
+      "code": "air",
+      "factor_kg_co2e_per_unit": 0.68,
+      "unit": "tonne_km",
+      "source": "Demo freight",
+      "year": 2024
+    },
+    {
+      "factor_id": "fac_mfg_steel",
+      "org_id": null,
+      "factor_category": "manufacturing",
+      "code": "mfg_steel",
+      "factor_kg_co2e_per_unit": 50,
+      "unit": "unit_output",
+      "source": "Demo process",
+      "year": 2024
+    },
+    {
+      "factor_id": "fac_mfg_aluminium",
+      "org_id": null,
+      "factor_category": "manufacturing",
+      "code": "mfg_aluminium",
+      "factor_kg_co2e_per_unit": 80,
+      "unit": "unit_output",
+      "source": "Demo process",
+      "year": 2024
+    },
+    {
+      "factor_id": "fac_mfg_plastic",
+      "org_id": null,
+      "factor_category": "manufacturing",
+      "code": "mfg_plastic",
+      "factor_kg_co2e_per_unit": 30,
+      "unit": "unit_output",
+      "source": "Demo process",
+      "year": 2024
+    },
+    {
+      "factor_id": "fac_mfg_cement",
+      "org_id": null,
+      "factor_category": "manufacturing",
+      "code": "mfg_cement",
+      "factor_kg_co2e_per_unit": 20,
+      "unit": "unit_output",
+      "source": "Demo process",
+      "year": 2024
+    },
+    {
+      "factor_id": "fac_mfg_other",
+      "org_id": null,
+      "factor_category": "manufacturing",
+      "code": "mfg_other",
+      "factor_kg_co2e_per_unit": 40,
+      "unit": "unit_output",
+      "source": "Demo process",
+      "year": 2024
+    },
+    {
+      "factor_id": "fac_log_road",
+      "org_id": null,
+      "factor_category": "logistics",
+      "code": "logistics_road",
+      "factor_kg_co2e_per_unit": 0.12,
+      "unit": "tonne_km",
+      "source": "Demo last-mile",
+      "year": 2024
+    }
+  ],
+  "total": 22
+}

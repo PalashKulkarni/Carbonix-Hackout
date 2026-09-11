@@ -1,0 +1,7 @@
+name,tier,parent_name,material_code,material_quantity_kg,energy_kwh,electricity_source,transport_distance_km,transport_mode,location_label,latitude,longitude,production_volume,production_unit
+SteelCo India,1,,steel,25000,50000,grid_coal,400,road,"Mumbai, India",19.076,72.8777,25,tonnes
+AluCo Extrusions,1,,aluminium,8000,20000,grid_mixed,1200,air,"Pune, India",18.5204,73.8567,8,tonnes
+Plastix Components,2,SteelCo India,plastic,12000,15000,grid_coal,300,road,"Chennai, India",13.0827,80.2707,12,tonnes
+Cementa Works,2,AluCo Extrusions,cement,40000,10000,grid_mixed,200,rail,"Ahmedabad, India",23.0225,72.5714,40,tonnes
+PackRight Films,3,Plastix Components,plastic,3000,4000,grid_renewable,80,road,"Bengaluru, India",12.9716,77.5946,3,tonnes
+Deccan Quarry,3,Cementa Works,cement,15000,8000,grid_coal,150,road,"Nagpur, India",21.1458,79.0882,15,tonnes

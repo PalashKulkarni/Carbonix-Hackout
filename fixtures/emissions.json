@@ -1,0 +1,83 @@
+{
+  "period": "2025",
+  "by_supplier": [
+    {
+      "supplier_id": "sup_steelco",
+      "energy_co2e_kg": 41000,
+      "transport_co2e_kg": 1200,
+      "material_co2e_kg": 46250,
+      "manufacturing_co2e_kg": 1250,
+      "logistics_co2e_kg": 150,
+      "total_co2e_kg": 89850,
+      "intensity_kg_per_unit": 3594,
+      "carbon_risk": "high",
+      "rank": 1,
+      "data_source": "primary"
+    },
+    {
+      "supplier_id": "sup_aluco",
+      "energy_co2e_kg": 9000,
+      "transport_co2e_kg": 6528,
+      "material_co2e_kg": 65920,
+      "manufacturing_co2e_kg": 640,
+      "logistics_co2e_kg": 48,
+      "total_co2e_kg": 82136,
+      "intensity_kg_per_unit": 10267,
+      "carbon_risk": "high",
+      "rank": 2,
+      "data_source": "primary"
+    },
+    {
+      "supplier_id": "sup_plastix",
+      "energy_co2e_kg": 12300,
+      "transport_co2e_kg": 432,
+      "material_co2e_kg": 30000,
+      "manufacturing_co2e_kg": 360,
+      "logistics_co2e_kg": 72,
+      "total_co2e_kg": 43164,
+      "intensity_kg_per_unit": 3597,
+      "carbon_risk": "high",
+      "rank": 3,
+      "data_source": "primary"
+    },
+    {
+      "supplier_id": "sup_cementa",
+      "energy_co2e_kg": 4500,
+      "transport_co2e_kg": 240,
+      "material_co2e_kg": 36000,
+      "manufacturing_co2e_kg": 800,
+      "logistics_co2e_kg": 240,
+      "total_co2e_kg": 41780,
+      "intensity_kg_per_unit": 1044.5,
+      "carbon_risk": "low",
+      "rank": 4,
+      "data_source": "primary"
+    },
+    {
+      "supplier_id": "sup_quarry",
+      "energy_co2e_kg": 6560,
+      "transport_co2e_kg": 270,
+      "material_co2e_kg": 13500,
+      "manufacturing_co2e_kg": 300,
+      "logistics_co2e_kg": 90,
+      "total_co2e_kg": 20720,
+      "intensity_kg_per_unit": 1381.33,
+      "carbon_risk": "low",
+      "rank": 5,
+      "data_source": "primary"
+    },
+    {
+      "supplier_id": "sup_packright",
+      "energy_co2e_kg": 160,
+      "transport_co2e_kg": 28.8,
+      "material_co2e_kg": 7500,
+      "manufacturing_co2e_kg": 90,
+      "logistics_co2e_kg": 18,
+      "total_co2e_kg": 7796.8,
+      "intensity_kg_per_unit": 2598.93,
+      "carbon_risk": "medium",
+      "rank": 6,
+      "data_source": "primary"
+    }
+  ]
+}
