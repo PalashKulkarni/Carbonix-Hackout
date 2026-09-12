@@ -82,18 +82,22 @@ const FieldLabel: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   </label>
 );
 
-/* ─── Carbonix logo mark for auth pages ──────────────────────────── */
+/* ─── Carbonix logo mark for auth pages — fingerprint-C ────────── */
 const AuthLogoMark: React.FC = () => (
-  <svg width="44" height="44" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="20" cy="20" r="18" stroke="rgba(255,255,255,0.3)" strokeWidth="1.5" fill="rgba(255,255,255,0.08)" />
-    <circle cx="20" cy="8"  r="3" fill="#6EE7B7" />
-    <circle cx="10" cy="28" r="3" fill="#6EE7B7" />
-    <circle cx="30" cy="28" r="3" fill="#6EE7B7" />
-    <line x1="20" y1="11" x2="10" y2="25" stroke="#6EE7B7" strokeWidth="1.5" strokeLinecap="round" />
-    <line x1="20" y1="11" x2="30" y2="25" stroke="#6EE7B7" strokeWidth="1.5" strokeLinecap="round" />
-    <line x1="13" y1="28" x2="27" y2="28" stroke="#6EE7B7" strokeWidth="1.5" strokeLinecap="round" />
-    <text x="20" y="24" textAnchor="middle" fontSize="11" fontWeight="700"
-      fontFamily="'Geist', system-ui, sans-serif" fill="#fff" letterSpacing="-0.5">Cx</text>
+  <svg width="48" height="48" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M 64,32 C 72,34 78,41 78,50 C 78,59 72,66 64,68" stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none" opacity="0.52" />
+    <circle cx="64" cy="32" r="2.4" fill="#6EE7B7" opacity="0.72" />
+    <circle cx="64" cy="68" r="2.4" fill="#6EE7B7" opacity="0.72" />
+    <path d="M 60,24 C 74,26 85,37 85,50 C 85,63 74,74 60,76" stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none" opacity="0.66" />
+    <circle cx="60" cy="24" r="2.4" fill="#6EE7B7" opacity="0.82" />
+    <circle cx="60" cy="76" r="2.4" fill="#6EE7B7" opacity="0.82" />
+    <path d="M 55,17 C 73,18 92,32 92,50 C 92,68 73,82 55,83" stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none" opacity="0.80" />
+    <circle cx="55" cy="17" r="2.6" fill="#6EE7B7" />
+    <circle cx="55" cy="83" r="2.6" fill="#6EE7B7" />
+    <path d="M 50,10 C 74,10 97,28 97,50 C 97,72 74,90 50,90" stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none" opacity="0.92" />
+    <circle cx="50" cy="10" r="2.8" fill="#6EE7B7" />
+    <circle cx="50" cy="90" r="2.8" fill="#6EE7B7" />
+    <path d="M 44,8 C 72,6 100,26 100,50 C 100,74 72,94 44,92" stroke="white" strokeWidth="1.8" strokeLinecap="round" fill="none" opacity="0.35" />
   </svg>
 );
 
