@@ -4,14 +4,14 @@
   "renewable_energy_pct": 60,
   "rail_transport_pct": 50,
   "current_total_co2e_kg": 285446.8,
-  "projected_total_co2e_kg": 183990.75,
-  "delta_co2e_kg": 101456.05,
-  "delta_pct": 35.54,
+  "projected_total_co2e_kg": 182510.75,
+  "delta_co2e_kg": 102936.05,
+  "delta_pct": 36.06,
   "by_category": [
     {
       "emission_category": "energy",
       "current_co2e_kg": 73520,
-      "projected_co2e_kg": 33456
+      "projected_co2e_kg": 31976
     },
     {
       "emission_category": "transport",

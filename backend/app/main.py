@@ -14,13 +14,13 @@ from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 try:
-    from engine import SupplierActivityInput
+    from engine import ScenarioInput, SupplierActivityInput, simulate_scenario as run_scenario
 except ModuleNotFoundError:
-    from backend.engine import SupplierActivityInput
+    from backend.engine import ScenarioInput, SupplierActivityInput, simulate_scenario as run_scenario
 from app.data import load_fixture
 from app.db import Base, SessionLocal, engine, get_db
 from app.models import EmissionFactor, EmissionResult, Recommendation, Supplier
-from app.engine_adapter import calculate_and_rank
+from app.engine_adapter import calculate_and_rank, factor_registry, supplier_activity
 from app.model_a_adapter import fill_activity
 from app.repository import (
     ORG_ID,
@@ -100,6 +100,13 @@ class FactorUpdateRequest(BaseModel):
     factor_kg_co2e_per_unit: float = Field(ge=0)
     source: str
     year: int = Field(ge=1900, le=2100)
+
+
+class ScenarioSimulationRequest(BaseModel):
+    period: str = "2025"
+    recycled_material_pct: float = Field(default=0, ge=0, le=100)
+    renewable_energy_pct: float = Field(default=0, ge=0, le=100)
+    rail_transport_pct: float = Field(default=0, ge=0, le=100)
 
 
 class RecommendationStatusUpdate(BaseModel):
@@ -458,6 +465,21 @@ def get_map_suppliers(period: str = Query("2025"), database: Session = Depends(g
     return map_suppliers(database, period)
 
 
+@app.post("/scenarios/simulate")
+def simulate_scenario_endpoint(
+    request: ScenarioSimulationRequest,
+    database: Session = Depends(get_db),
+) -> dict[str, Any]:
+    suppliers = database.query(Supplier).all()
+    result = run_scenario(
+        suppliers=[supplier_activity(supplier) for supplier in suppliers],
+        scenario=ScenarioInput(**request.model_dump()),
+        org_id=ORG_ID,
+        registry=factor_registry(database),
+    )
+    return result.model_dump()
+
+
 def factor_dict(factor: EmissionFactor) -> dict[str, Any]:
     return {
         "factor_id": factor.factor_id,
@@ -536,90 +558,4 @@ def update_recommendation_status(
     return recommendation_dict(recommendation)
 
 
-@app.post("/scenarios/simulate")
-def simulate_scenario(
-    request: ScenarioSimulationRequest,
-    database: Session = Depends(get_db),
-) -> dict[str, Any]:
-    suppliers = database.scalars(select(Supplier)).all()
-    factors = factor_registry(database)
-
-    current_total = 0.0
-    projected_total = 0.0
-
-    for supplier in suppliers:
-        act = supplier_input_from_model(supplier)
-        try:
-            from engine.carbon import calculate_emissions
-        except ModuleNotFoundError:
-            from backend.engine.carbon import calculate_emissions
-
-        # Current calculation
-        current_res = calculate_emissions(
-            {
-                "material_quantity_kg": supplier.material_quantity_kg,
-                "energy_kwh": supplier.energy_kwh,
-                "electricity_source": supplier.electricity_source,
-                "transport_distance_km": supplier.transport_distance_km,
-                "transport_mode": supplier.transport_mode,
-                "material_code": supplier.material_code,
-                "production_volume": supplier.production_volume,
-            },
-            factor_map := {
-                (factor.factor_category, factor.code): float(factor.factor_kg_co2e_per_unit)
-                for factor in database.scalars(select(EmissionFactor)).all()
-            },
-        )
-        current_total += current_res["total_co2e_kg"]
-
-        # Calculate scenario adjusted activity
-        sim_mat_code = supplier.material_code
-        sim_energy = supplier.energy_kwh
-        sim_elec = supplier.electricity_source
-        sim_transport_mode = supplier.transport_mode
-
-        if request.recycled_material_pct > 0 and supplier.material_code in {"steel", "aluminium", "plastic"}:
-            sim_mat_code = f"recycled_{supplier.material_code}"
-
-        if request.renewable_energy_pct > 0 and supplier.electricity_source in {"grid_coal", "grid_mixed"}:
-            sim_elec = "grid_renewable"
-
-        if request.rail_transport_pct > 0 and supplier.transport_mode in {"road", "air"}:
-            sim_transport_mode = "rail"
-
-        proj_res = calculate_emissions(
-            {
-                "material_quantity_kg": supplier.material_quantity_kg,
-                "energy_kwh": sim_energy,
-                "electricity_source": sim_elec,
-                "transport_distance_km": supplier.transport_distance_km,
-                "transport_mode": sim_transport_mode,
-                "material_code": sim_mat_code,
-                "production_volume": supplier.production_volume,
-            },
-            factor_map,
-        )
-
-        # Weighted blend based on user percentages
-        mat_weight = request.recycled_material_pct / 100.0
-        nrg_weight = request.renewable_energy_pct / 100.0
-        trans_weight = request.rail_transport_pct / 100.0
-        avg_weight = max(mat_weight, nrg_weight, trans_weight)
-
-        supplier_projected = current_res["total_co2e_kg"] * (1 - avg_weight) + proj_res["total_co2e_kg"] * avg_weight
-        projected_total += supplier_projected
-
-    delta = current_total - projected_total
-    delta_pct = (delta / current_total * 100.0) if current_total > 0 else 0.0
-
-    return {
-        "period": request.period,
-        "recycled_material_pct": request.recycled_material_pct,
-        "renewable_energy_pct": request.renewable_energy_pct,
-        "rail_transport_pct": request.rail_transport_pct,
-        "current_total_co2e_kg": round(current_total, 1),
-        "projected_total_co2e_kg": round(projected_total, 1),
-        "delta_co2e_kg": round(delta, 1),
-        "delta_pct": round(delta_pct, 2),
-    }
 

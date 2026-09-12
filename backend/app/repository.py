@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.data import load_fixture
 from app.engine_adapter import calculate_and_rank
-from app.models import EmissionFactor, EmissionResult, Org, Supplier, User
+from app.models import EmissionFactor, EmissionResult, Org, Recommendation, Supplier, User
 from app.recommendations import refresh_recommendations
 
 ORG_ID = "org_apex"
@@ -97,6 +97,11 @@ def dashboard(database: Session, period: str = PERIOD) -> dict[str, Any]:
     }
     total = sum(item["total_co2e_kg"] for item in items)
     tier1_total = tiers[1]
+    top_recommendations = database.scalars(
+        select(Recommendation)
+        .order_by(Recommendation.delta_co2e_kg.desc())
+        .limit(3)
+    ).all()
     return {
         "period": period,
         "org_id": ORG_ID,
@@ -118,7 +123,15 @@ def dashboard(database: Session, period: str = PERIOD) -> dict[str, Any]:
             {key: item[key] for key in ("supplier_id", "name", "intensity_kg_per_unit", "carbon_risk")}
             for item in sorted(items, key=lambda item: item["intensity_kg_per_unit"], reverse=True)[:5]
         ],
-        "top_recommendations": load_fixture("dashboard.json")["top_recommendations"],
+        "top_recommendations": [
+            {
+                "recommendation_id": recommendation.recommendation_id,
+                "supplier_id": recommendation.supplier_id,
+                "title": recommendation.title,
+                "delta_co2e_kg": float(recommendation.delta_co2e_kg),
+            }
+            for recommendation in top_recommendations
+        ],
     }
 
 

@@ -27,6 +27,8 @@ The backend is a FastAPI application with SQLAlchemy persistence and a pure Pyth
 - Shared fixture loader
 - SQLAlchemy-to-modular-engine adapter for live application calculations
 - Import compatibility for launching from the repository root or `backend/`
+- Database-backed scenario simulation through the modular engine
+- Database-backed dashboard recommendation teaser
 - Reproducible ML test dependencies and sklearn artifact version pin
 - Local SQLite databases ignored by git
 
@@ -101,6 +103,18 @@ Factors are now database-backed:
 - `PUT /factors/{factor_id}`
 - Factor updates recalculate all cached emission results.
 
+Scenario simulation is now live:
+
+- `POST /scenarios/simulate`
+- Uses current database suppliers and factors
+- Applies recycled material, renewable energy, and rail sliders through the modular engine
+- Returns category breakdown, projected total, delta, and reduction percentage
+
+Dashboard recommendations are now live:
+
+- `top_recommendations` comes from the three highest persisted recommendation deltas.
+- Dashboard teaser and recommendations inbox use the same database records.
+
 ## Validation
 
 Run from `backend/` using the configured Anaconda interpreter:
@@ -109,9 +123,9 @@ Run from `backend/` using the configured Anaconda interpreter:
 /opt/anaconda3/bin/python -m pytest -q
 ```
 
-Current local app result: **16 passed**.
+Current local app result: **17 passed**.
 
-After ML integration, the combined backend and ML suite passes: **71 passed**. Model B emits sklearn version warnings when loading `backend/ml/model_b/artifacts/ranker_model.joblib`; those warnings do not currently fail tests.
+After scenario integration, the combined backend and ML suite passes: **72 passed**. Model B emits sklearn version warnings when loading `backend/ml/model_b/artifacts/ranker_model.joblib`; those warnings do not currently fail tests.
 
 Compile backend files with:
 
@@ -132,7 +146,7 @@ Use `DATABASE_URL` to target PostgreSQL or another database. The current develop
 ### Highest priority
 
 1. Use Alembic migrations as the standard shared/deployment schema path.
-2. Implement scenario simulation using the modular engine.
+2. Implement trends and reports when the P2 pages are prioritized.
 
 ### Pulled ML Work
 

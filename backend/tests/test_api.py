@@ -51,6 +51,16 @@ def test_dashboard_and_rankings_use_contract_shapes():
     assert rankings.json()["items"][0]["supplier_id"] == "sup_aluco"
 
 
+def test_dashboard_recommendations_are_database_backed():
+    dashboard = client.get("/dashboard").json()
+    recommendations = client.get("/recommendations").json()
+
+    assert dashboard["top_recommendations"]
+    assert [item["recommendation_id"] for item in dashboard["top_recommendations"]] == [
+        item["recommendation_id"] for item in recommendations["items"][:3]
+    ]
+
+
 def test_database_read_models_match_demo_contract():
     hierarchy = client.get("/hierarchy")
     map_payload = client.get("/map/suppliers")
@@ -60,6 +70,26 @@ def test_database_read_models_match_demo_contract():
     assert hierarchy.json()["children"][0]["supplier_id"] == "sup_steelco"
     assert map_payload.status_code == 200
     assert map_payload.json()["total"] == 6
+
+
+def test_scenario_simulation_matches_golden_fixture():
+    response = client.post(
+        "/scenarios/simulate",
+        json={
+            "period": "2025",
+            "recycled_material_pct": 40,
+            "renewable_energy_pct": 60,
+            "rail_transport_pct": 50,
+        },
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["current_total_co2e_kg"] == pytest.approx(285446.8)
+    assert payload["projected_total_co2e_kg"] == pytest.approx(182510.75)
+    assert payload["delta_co2e_kg"] == pytest.approx(102936.05)
+    assert payload["delta_pct"] == pytest.approx(36.06)
+    assert len(payload["by_category"]) == 5
 
 
 def test_dashboard_changes_after_supplier_update():

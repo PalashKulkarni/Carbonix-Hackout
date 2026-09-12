@@ -367,7 +367,7 @@ export const MOCK_SCENARIO_RESULT: ScenarioSimulationResponse = {
   renewable_energy_pct: 60,
   rail_transport_pct: 50,
   current_total_co2e_kg: 285446.8,
-  projected_total_co2e_kg: 198520.4,
-  delta_co2e_kg: 86926.4,
-  delta_pct: 30.45
+  projected_total_co2e_kg: 182510.75,
+  delta_co2e_kg: 102936.05,
+  delta_pct: 36.06
 };
