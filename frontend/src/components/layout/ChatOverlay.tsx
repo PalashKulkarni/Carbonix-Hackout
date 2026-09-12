@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Bot, Send, User, X } from 'lucide-react';
 import { Button } from '../ui/Button';
+import { api } from '../../services/api';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -35,30 +36,13 @@ export const ChatOverlay: React.FC<ChatOverlayProps> = ({ isOpen, onClose, perio
     setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:8000/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          messages: [...messages, userMsg],
-          period,
-        }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setMessages((prev) => [...prev, { role: 'assistant', content: data.content }]);
-      } else {
-        throw new Error('Chat API endpoint un-implemented or offline');
-      }
+      const data = await api.askInventoryQuestion([...messages, userMsg], period);
+      setMessages((prev) => [...prev, { role: 'assistant', content: data.content }]);
     } catch {
-      // Intelligent fallback assistance based on domain engine data
-      let reply = "Based on current inventory for CY 2025: SteelCo India and AluCo Extrusions generate 60.2% of total org Scope 3 emissions (171.9 tCO₂e). Switching AluCo to 80% recycled aluminium offers the single largest reduction potential of 53,920 kg CO₂e.";
-      if (query.toLowerCase().includes('risk') || query.toLowerCase().includes('hotspot')) {
-        reply = "High-risk suppliers are SteelCo India, AluCo Extrusions, and Plastix Components. Their intensities exceed 1.25x of the org median (3,594 kg CO₂e/unit).";
-      }
-      setTimeout(() => {
-        setMessages((prev) => [...prev, { role: 'assistant', content: reply }]);
-      }, 500);
+      setMessages((prev) => [...prev, {
+        role: 'assistant',
+        content: 'I could not access the current inventory. Please check that the Carbonix backend is running and try again.',
+      }]);
     } finally {
       setLoading(false);
     }

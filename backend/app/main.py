@@ -21,6 +21,7 @@ from app.data import load_fixture
 from app.db import Base, SessionLocal, engine, get_db
 from app.models import EmissionFactor, EmissionResult, Org, Recommendation, Supplier, User
 from app.auth import create_token, decode_token, hash_password, verify_password
+from app.chat import answer_chat_question
 from app.engine_adapter import calculate_and_rank, factor_registry, supplier_activity
 from app.model_a_adapter import fill_activity
 from app.repository import (
@@ -140,6 +141,16 @@ class ReportRequest(BaseModel):
 
 class RecommendationStatusUpdate(BaseModel):
     status: Literal["open", "accepted", "dismissed", "in_progress"]
+
+
+class ChatMessage(BaseModel):
+    role: Literal["user", "assistant"]
+    content: str = Field(min_length=1, max_length=2_000)
+
+
+class ChatRequest(BaseModel):
+    messages: list[ChatMessage] = Field(min_length=1, max_length=20)
+    period: str = "2025"
 
 
 class ScenarioSimulationRequest(BaseModel):
@@ -552,6 +563,25 @@ def generate_esg_report(
     )
 
 
+@app.post("/chat")
+def chat(request: ChatRequest, http_request: Request, database: Session = Depends(get_db)) -> dict[str, str]:
+    authorization = http_request.headers.get("Authorization", "")
+    token = authorization[7:] if authorization.startswith("Bearer ") else ""
+    identity = decode_token(token)
+    if identity is None:
+        return JSONResponse(status_code=401, content={"error": {"code": "UNAUTHORIZED", "message": "A valid bearer token is required", "details": []}})
+    user_messages = [message.content for message in request.messages if message.role == "user"]
+    return {
+        "role": "assistant",
+        "content": answer_chat_question(
+            database=database,
+            org_id=identity["org_id"],
+            question=user_messages[-1] if user_messages else request.messages[-1].content,
+            period=request.period,
+        ),
+    }
+
+
 def factor_dict(factor: EmissionFactor) -> dict[str, Any]:
     return {
         "factor_id": factor.factor_id,
@@ -628,6 +658,4 @@ def update_recommendation_status(
     recommendation.status = request.status
     database.commit()
     return recommendation_dict(recommendation)
-
-
 

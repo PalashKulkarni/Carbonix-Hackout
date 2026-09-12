@@ -105,6 +105,24 @@ export const api = {
     });
   },
 
+  askInventoryQuestion: async (
+    messages: Array<{ role: 'user' | 'assistant'; content: string }>,
+    period = '2025',
+  ): Promise<{ role: 'assistant'; content: string }> => {
+    const response = await fetch(`${API_BASE_URL}/chat`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${getStoredToken()}`,
+      },
+      body: JSON.stringify({ messages, period }),
+    });
+    if (!response.ok) {
+      throw new Error(`Inventory assistant failed: ${response.status}`);
+    }
+    return response.json();
+  },
+
   // Dashboard
   getDashboard: async (period = '2025'): Promise<DashboardData> => {
     return fetchWithFallback<DashboardData>(`/dashboard?period=${period}`, {}, MOCK_DASHBOARD);

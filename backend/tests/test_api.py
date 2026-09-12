@@ -97,6 +97,34 @@ def test_database_read_models_match_demo_contract():
     assert map_payload.json()["total"] == 6
 
 
+def test_chat_answers_from_current_inventory_only():
+    response = client.post(
+        "/chat",
+        json={"period": "2025", "messages": [{"role": "user", "content": "What are the top hotspots?"}]},
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["role"] == "assistant"
+    assert "SteelCo India" in payload["content"]
+    assert "89.85 tCO2e" in payload["content"]
+
+
+def test_chat_answers_supplier_and_logistics_questions():
+    supplier = client.post(
+        "/chat",
+        json={"messages": [{"role": "user", "content": "Why is SteelCo India high risk?"}]},
+    )
+    logistics = client.post(
+        "/chat",
+        json={"messages": [{"role": "user", "content": "How much is logistics?"}]},
+    )
+
+    assert "ranked #1" in supplier.json()["content"]
+    assert "15% high-risk threshold" in supplier.json()["content"]
+    assert "0.62 tCO2e" in logistics.json()["content"]
+
+
 def test_scenario_simulation_matches_golden_fixture():
     response = client.post(
         "/scenarios/simulate",
