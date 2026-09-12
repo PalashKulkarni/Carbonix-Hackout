@@ -7,5 +7,11 @@ Requires-Dist: fastapi>=0.115
 Requires-Dist: uvicorn[standard]>=0.30
 Requires-Dist: sqlalchemy>=2.0
 Requires-Dist: python-multipart>=0.0.9
+Requires-Dist: alembic>=1.13
 Provides-Extra: test
 Requires-Dist: pytest>=8.0; extra == "test"
+Provides-Extra: ml
+Requires-Dist: joblib>=1.4; extra == "ml"
+Requires-Dist: numpy>=2.0; extra == "ml"
+Requires-Dist: pandas>=2.2; extra == "ml"
+Requires-Dist: scikit-learn==1.8.0; extra == "ml"
