@@ -146,7 +146,7 @@ Use `DATABASE_URL` to target PostgreSQL or another database. The current develop
 ### Highest priority
 
 1. Use Alembic migrations as the standard shared/deployment schema path.
-2. Implement trends and reports when the P2 pages are prioritized.
+2. Implement reports when the P2 page is prioritized.
 
 ### Pulled ML Work
 

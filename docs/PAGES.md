@@ -22,8 +22,7 @@ Sidebar order:
 5. Recommendations → `/app/recommendations`
 6. Scenarios → `/app/scenarios`
 7. Factors → `/app/factors`
-8. Trends → `/app/trends`
-9. Reports → `/app/reports`
+8. Reports → `/app/reports`
 
 ## App pages
 
@@ -87,11 +86,6 @@ Sidebar order:
 - Edit `factor_kg_co2e_per_unit`, `unit`, `source`, `year`
 - APIs: `GET /factors`, `PUT /factors/{id}`
 - After edit, backend recalculates org emissions
-
-### `/app/trends` — History (P2)
-
-- Lines: total, by category, by tier
-- API: `GET /trends`
 
 ### `/app/reports` — ESG PDF (P2)
 

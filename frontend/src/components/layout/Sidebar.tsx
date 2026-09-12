@@ -8,7 +8,6 @@ import {
   Lightbulb,
   SlidersHorizontal,
   Database,
-  TrendingUp,
   FileSpreadsheet,
   ShieldCheck,
   Leaf,
@@ -31,7 +30,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ onLogout }) => {
     { label: 'Recommendations', path: '/app/recommendations', icon: Lightbulb },
     { label: 'Scenarios', path: '/app/scenarios', icon: SlidersHorizontal },
     { label: 'Factors', path: '/app/factors', icon: Database },
-    { label: 'Trends', path: '/app/trends', icon: TrendingUp },
     { label: 'Reports', path: '/app/reports', icon: FileSpreadsheet },
   ];
 

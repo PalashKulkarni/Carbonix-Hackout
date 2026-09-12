@@ -11,7 +11,6 @@ import { MapPage } from './pages/MapPage';
 import { RecommendationsPage } from './pages/RecommendationsPage';
 import { ScenariosPage } from './pages/ScenariosPage';
 import { FactorsPage } from './pages/FactorsPage';
-import { TrendsPage } from './pages/TrendsPage';
 import { ReportsPage } from './pages/ReportsPage';
 
 const PAGE_TITLES: Record<string, { title: string; subtitle?: string }> = {
@@ -22,7 +21,6 @@ const PAGE_TITLES: Record<string, { title: string; subtitle?: string }> = {
   '/app/recommendations': { title: 'Decarbonization Actions Inbox', subtitle: 'Machine-ranked circular material, energy, and freight actions' },
   '/app/scenarios': { title: 'What-If Decarbonization Simulator', subtitle: 'Live parameter sliders for procurement shift modeling' },
   '/app/factors': { title: 'Emission Factor Registry', subtitle: 'Auditable factor conversion database for CO₂e calculations' },
-  '/app/trends': { title: 'Historical Emissions Trends', subtitle: 'Quarterly trajectory analysis across total Scope 3 footprint' },
   '/app/reports': { title: 'ESG Audit Report Generator', subtitle: 'COP28 compliant regulatory audit statements and PDF export' },
 };
 
@@ -68,7 +66,6 @@ const AppRoutes: React.FC = () => {
         <Route path="recommendations" element={<RecommendationsPage period={period} />} />
         <Route path="scenarios" element={<ScenariosPage period={period} />} />
         <Route path="factors" element={<FactorsPage />} />
-        <Route path="trends" element={<TrendsPage period={period} />} />
         <Route path="reports" element={<ReportsPage period={period} />} />
       </Route>
 
