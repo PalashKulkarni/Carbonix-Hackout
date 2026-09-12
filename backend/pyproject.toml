@@ -8,6 +8,7 @@ dependencies = [
 	"uvicorn[standard]>=0.30",
 	"sqlalchemy>=2.0",
 	"python-multipart>=0.0.9",
+	"alembic>=1.13",
 ]
 
 [build-system]

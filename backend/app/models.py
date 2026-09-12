@@ -82,3 +82,19 @@ class EmissionResult(Base):
     carbon_risk: Mapped[str] = mapped_column(String, nullable=False)
     rank: Mapped[int] = mapped_column(Integer, nullable=False)
     calculated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+
+
+class Recommendation(Base):
+    __tablename__ = "recommendations"
+
+    recommendation_id: Mapped[str] = mapped_column(String, primary_key=True)
+    org_id: Mapped[str] = mapped_column(ForeignKey("orgs.org_id"), nullable=False)
+    supplier_id: Mapped[str] = mapped_column(ForeignKey("suppliers.supplier_id"), nullable=False)
+    action_type: Mapped[str] = mapped_column(String, nullable=False)
+    title: Mapped[str] = mapped_column(String, nullable=False)
+    description: Mapped[str] = mapped_column(String, nullable=False)
+    current_co2e_kg: Mapped[Decimal] = mapped_column(Numeric, nullable=False)
+    projected_co2e_kg: Mapped[Decimal] = mapped_column(Numeric, nullable=False)
+    delta_co2e_kg: Mapped[Decimal] = mapped_column(Numeric, nullable=False)
+    status: Mapped[str] = mapped_column(String, default="open", nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)

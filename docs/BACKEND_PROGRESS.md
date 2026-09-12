@@ -22,6 +22,7 @@ The backend is a FastAPI application with SQLAlchemy persistence and a pure Pyth
 - `POST /auth/demo`
 - `GET /auth/me`
 - SQLAlchemy database setup and models
+- Alembic configuration and initial schema migration
 - Automatic local schema creation and demo seeding
 - Shared fixture loader
 
@@ -57,15 +58,36 @@ The backend is a FastAPI application with SQLAlchemy persistence and a pure Pyth
 - Created, updated, and row-level error reporting
 - Engine recalculation after upload
 
+### Recommendations Partial Implementation
+
+- Added the `recommendations` table and Alembic revision `0002_recommendations`
+- Added rule-based candidate generation in `backend/app/recommendations.py`
+- Candidate types currently include recycled material, renewable energy, and modal shift
+- Every projected value and `delta_co2e_kg` comes from the carbon engine
+- Added `GET /recommendations`
+- Added `GET /recommendations?supplier_id=` filtering
+- Added `GET /suppliers/{supplier_id}/recommendations`
+- Added `PATCH /recommendations/{recommendation_id}` for status updates
+- Recommendations refresh after supplier, CSV, demo, and factor changes
+
+Model B can later replace the rule-based ordering/candidate scorer inside `recommendations.py`; the frontend API and stored response shape should remain unchanged.
+
 ### Read Endpoints
 
-The following endpoints currently return fixture-backed responses:
+The following endpoints are now database-backed:
 
 - `GET /dashboard`
 - `GET /rankings`
 - `GET /hierarchy`
 - `GET /map/suppliers`
+
+`top_recommendations` in the dashboard remains fixture-backed until recommendations are implemented.
+
+Factors are now database-backed:
+
 - `GET /factors`
+- `PUT /factors/{factor_id}`
+- Factor updates recalculate all cached emission results.
 
 ## Validation
 
@@ -83,14 +105,21 @@ Compile backend files with:
 /opt/anaconda3/bin/python -m py_compile app/main.py app/db.py app/models.py app/repository.py app/engine_adapter.py engine/carbon.py
 ```
 
+Run schema migrations from `backend/` with:
+
+```bash
+/opt/anaconda3/bin/alembic upgrade head
+```
+
+Use `DATABASE_URL` to target PostgreSQL or another database. The current development startup still calls `Base.metadata.create_all()` for an easy local first run; Alembic is the versioned schema path for shared and deployed environments.
+
 ## Next Work
 
 ### Highest priority
 
-1. Replace fixture-backed dashboard, rankings, hierarchy, and map responses with database queries.
-2. Make `GET /factors` database-backed.
-3. Implement `PUT /factors/{factor_id}` and recalculate all emission results after factor changes.
-4. Add Alembic migrations instead of relying only on `Base.metadata.create_all()`.
+1. Use Alembic migrations as the standard shared/deployment schema path.
+2. Connect Model B to rank the generated candidates.
+3. Implement scenario simulation using the same carbon engine.
 
 ### P1
 

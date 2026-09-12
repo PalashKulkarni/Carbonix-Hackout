@@ -11,9 +11,20 @@ from sqlalchemy.orm import Session
 
 from app.data import load_fixture
 from app.db import Base, SessionLocal, engine, get_db
-from app.models import EmissionResult, Supplier
+from app.models import EmissionFactor, EmissionResult, Recommendation, Supplier
 from app.engine_adapter import calculate_and_rank
-from app.repository import ORG_ID, all_supplier_dicts, initialize_database, seed_demo, supplier_dict
+from app.repository import (
+    ORG_ID,
+    all_supplier_dicts,
+    dashboard,
+    hierarchy,
+    initialize_database,
+    map_suppliers,
+    rankings,
+    seed_demo,
+    supplier_dict,
+)
+from app.recommendations import recommendation_dict, refresh_recommendations
 
 Base.metadata.create_all(bind=engine)
 with SessionLocal() as startup_database:
@@ -74,6 +85,16 @@ class SupplierUpdateRequest(BaseModel):
     longitude: float | None = None
     production_volume: float | None = Field(default=None, ge=0)
     production_unit: str | None = None
+
+
+class FactorUpdateRequest(BaseModel):
+    factor_kg_co2e_per_unit: float = Field(ge=0)
+    source: str
+    year: int = Field(ge=1900, le=2100)
+
+
+class RecommendationStatusUpdate(BaseModel):
+    status: Literal["open", "accepted", "dismissed", "in_progress"]
 
 
 CSV_HEADERS = {
@@ -217,6 +238,7 @@ def create_supplier(
     database.add(supplier)
     database.flush()
     calculate_and_rank(database, "2025")
+    refresh_recommendations(database, "2025")
     database.commit()
     result = database.get(EmissionResult, (supplier.supplier_id, "2025"))
     return supplier_dict(supplier, result)
@@ -242,6 +264,7 @@ def update_supplier(
     supplier.data_source = "primary"
     database.flush()
     calculate_and_rank(database, "2025")
+    refresh_recommendations(database, "2025")
     database.commit()
     result = database.get(EmissionResult, (supplier_id, "2025"))
     return supplier_dict(supplier, result)
@@ -310,41 +333,109 @@ async def upload_suppliers(
 
     if created or updated:
         calculate_and_rank(database, "2025")
+        refresh_recommendations(database, "2025")
         database.commit()
     items = all_supplier_dicts(database)
     return {"created": created, "updated": updated, "errors": errors, "items": items}
 
 
 @app.get("/dashboard")
-def get_dashboard(period: str = Query("2025")) -> dict[str, Any]:
-    return load_fixture("dashboard.json")
+def get_dashboard(period: str = Query("2025"), database: Session = Depends(get_db)) -> dict[str, Any]:
+    return dashboard(database, period)
 
 
 @app.get("/rankings")
 def get_rankings(
     period: str = Query("2025"),
     sort: str = Query("total", pattern="^(total|intensity)$"),
+    database: Session = Depends(get_db),
 ) -> dict[str, Any]:
-    payload = load_fixture("rankings.json")
-    if sort == "intensity":
-        items = sorted(payload["items"], key=lambda item: item["intensity_kg_per_unit"], reverse=True)
-        for rank, item in enumerate(items, start=1):
-            item["rank"] = rank
-        payload["items"] = items
-    payload["sort"] = sort
-    return payload
+    return rankings(database, period, sort)
 
 
 @app.get("/hierarchy")
-def get_hierarchy(period: str = Query("2025")) -> dict[str, Any]:
-    return load_fixture("hierarchy.json")
+def get_hierarchy(period: str = Query("2025"), database: Session = Depends(get_db)) -> dict[str, Any]:
+    return hierarchy(database, period)
 
 
 @app.get("/map/suppliers")
-def get_map_suppliers(period: str = Query("2025")) -> dict[str, Any]:
-    return load_fixture("map-suppliers.json")
+def get_map_suppliers(period: str = Query("2025"), database: Session = Depends(get_db)) -> dict[str, Any]:
+    return map_suppliers(database, period)
+
+
+def factor_dict(factor: EmissionFactor) -> dict[str, Any]:
+    return {
+        "factor_id": factor.factor_id,
+        "org_id": factor.org_id,
+        "factor_category": factor.factor_category,
+        "code": factor.code,
+        "factor_kg_co2e_per_unit": float(factor.factor_kg_co2e_per_unit),
+        "unit": factor.unit,
+        "source": factor.source,
+        "year": factor.year,
+    }
 
 
 @app.get("/factors")
-def get_factors() -> dict[str, Any]:
-    return load_fixture("factors.json")
+def get_factors(database: Session = Depends(get_db)) -> dict[str, Any]:
+    factors = database.query(EmissionFactor).order_by(EmissionFactor.factor_id).all()
+    return {"items": [factor_dict(factor) for factor in factors], "total": len(factors)}
+
+
+@app.put("/factors/{factor_id}")
+def update_factor(
+    factor_id: str,
+    request: FactorUpdateRequest,
+    database: Session = Depends(get_db),
+) -> Any:
+    factor = database.get(EmissionFactor, factor_id)
+    if factor is None:
+        return not_found(f"Factor {factor_id} was not found")
+    factor.factor_kg_co2e_per_unit = request.factor_kg_co2e_per_unit
+    factor.source = request.source
+    factor.year = request.year
+    database.flush()
+    calculate_and_rank(database, "2025")
+    refresh_recommendations(database, "2025")
+    database.commit()
+    return factor_dict(factor)
+
+
+@app.get("/recommendations")
+def get_recommendations(
+    period: str = Query("2025"),
+    supplier_id: str | None = None,
+    database: Session = Depends(get_db),
+) -> dict[str, Any]:
+    query = database.query(Recommendation).order_by(Recommendation.delta_co2e_kg.desc())
+    if supplier_id:
+        query = query.filter(Recommendation.supplier_id == supplier_id)
+    items = [recommendation_dict(item) for item in query.all()]
+    return {"period": period, "items": items, "total": len(items)}
+
+
+@app.get("/suppliers/{supplier_id}/recommendations")
+def get_supplier_recommendations(
+    supplier_id: str,
+    database: Session = Depends(get_db),
+) -> dict[str, Any]:
+    if database.get(Supplier, supplier_id) is None:
+        return not_found(f"Supplier {supplier_id} was not found")
+    items = [recommendation_dict(item) for item in database.query(Recommendation).filter(
+        Recommendation.supplier_id == supplier_id
+    ).order_by(Recommendation.delta_co2e_kg.desc()).all()]
+    return {"items": items, "total": len(items)}
+
+
+@app.patch("/recommendations/{recommendation_id}")
+def update_recommendation_status(
+    recommendation_id: str,
+    request: RecommendationStatusUpdate,
+    database: Session = Depends(get_db),
+) -> Any:
+    recommendation = database.get(Recommendation, recommendation_id)
+    if recommendation is None:
+        return not_found(f"Recommendation {recommendation_id} was not found")
+    recommendation.status = request.status
+    database.commit()
+    return recommendation_dict(recommendation)
