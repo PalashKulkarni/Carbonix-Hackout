@@ -155,7 +155,7 @@ export const ScenariosPage: React.FC<ScenariosPageProps> = ({ period }) => {
         </div>
 
         {/* Live Simulation Projection Card (1 Column) */}
-        <div className="carbonix-card p-6 bg-[#1B3A2D] text-[#F7F5F0] flex flex-col justify-between">
+        <div className="carbonix-card-dark p-6 flex flex-col justify-between">
           <div>
             <div className="flex items-center space-x-2 pb-3 border-b border-[#254F3E] mb-4">
               <TrendingDown className="w-5 h-5 text-[#7A9B8A]" />

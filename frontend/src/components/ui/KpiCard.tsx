@@ -34,9 +34,9 @@ export const KpiCard: React.FC<KpiCardProps> = ({
         : 'bg-white text-[#2C2C2C] border-[#E1DFDA] shadow-xs'
     }`}>
       <div className="flex items-center justify-between mb-2">
-        <span className={`font-mono-data text-xs font-semibold tracking-wider uppercase ${
+        <span className={`font-mono-data text-xs font-semibold tracking-wider uppercase truncate pr-2 ${
           dark ? 'text-[#7A9B8A]' : 'text-stone-500'
-        }`}>
+        }`} title={title}>
           {title}
         </span>
         {icon && <span className={dark ? 'text-[#7A9B8A]' : 'text-stone-400'}>{icon}</span>}

@@ -108,14 +108,14 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ period }) => {
         />
         <KpiCard
           title="Data Coverage"
-          value={`${data.data_coverage_pct}%`}
+          value={`${Number(data.data_coverage_pct).toFixed(1)}%`}
           change="Validated"
           changeType="positive"
           subtitle="Primary activity logs"
         />
         <KpiCard
-          title="Tier 1 Emission Share"
-          value={`${data.tier1_share_pct}%`}
+          title="Tier 1 Share"
+          value={`${Number(data.tier1_share_pct).toFixed(1)}%`}
           change="Concentrated"
           changeType="negative"
           subtitle="171.9 tCO₂e in Tier 1"
@@ -285,7 +285,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ period }) => {
           </div>
 
           {/* Decarbonization Recs Teaser */}
-          <div className="carbonix-card p-6 bg-[#1B3A2D] text-[#F7F5F0]">
+          <div className="carbonix-card-dark p-6">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center space-x-2">
                 <Lightbulb className="w-4 h-4 text-[#7A9B8A]" />

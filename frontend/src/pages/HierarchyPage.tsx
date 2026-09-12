@@ -1,116 +1,356 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FolderTree, Building2, Layers } from 'lucide-react';
+import ReactFlow, {
+  Background,
+  BackgroundVariant,
+  Controls,
+  Handle,
+  MiniMap,
+  Position,
+  ReactFlowProvider,
+  useEdgesState,
+  useNodesState,
+  useReactFlow,
+} from 'reactflow';
+import type { Edge, Node, NodeProps } from 'reactflow';
+import 'reactflow/dist/style.css';
+import { Building2, ChevronRight, FolderTree, Maximize2 } from 'lucide-react';
 import { Badge } from '../components/ui/Badge';
 import { api } from '../services/api';
 import type { HierarchyNode } from '../types';
 
+/* ─── Constants ─────────────────────────────────────────── */
+
+const NODE_W = 220;
+const NODE_H = 106;
+const H_GAP  = 60;
+const V_GAP  = 80;
 
 interface HierarchyPageProps {
   period: string;
 }
 
-export const HierarchyPage: React.FC<HierarchyPageProps> = ({ period }) => {
-  const navigate = useNavigate();
-  const [hierarchy, setHierarchy] = useState<HierarchyNode | null>(null);
-  const [loading, setLoading] = useState(true);
+/* ─── Tier theme ─────────────────────────────────────────── */
 
-  useEffect(() => {
-    const loadData = async () => {
-      setLoading(true);
-      const res = await api.getHierarchy(period);
-      setHierarchy(res);
-      setLoading(false);
-    };
-    loadData();
-  }, [period]);
+const TIER_THEME: Record<number, { border: string; bg: string; label: string; edge: string }> = {
+  0: { border: '#1B3A2D', bg: '#1B3A2D', label: '#7A9B8A', edge: '#2D6A4F' },
+  1: { border: '#2D6A4F', bg: '#F0F7F4', label: '#2D6A4F', edge: '#52B788' },
+  2: { border: '#52B788', bg: '#F4FAF7', label: '#52B788', edge: '#95D5B2' },
+  3: { border: '#95D5B2', bg: '#F8FCF9', label: '#74C69D', edge: '#B7E4C7' },
+};
 
-  if (loading || !hierarchy) {
-    return (
-      <div className="flex items-center justify-center h-64 text-stone-500 font-mono-data text-xs">
-        Constructing multi-tier supply chain tree...
-      </div>
-    );
-  }
+/* ─── Custom node data shape ─────────────────────────────── */
 
-  const renderNode = (node: HierarchyNode, isRoot = false) => {
-    const totalTonnes = Math.round((node.total_co2e_kg / 1000) * 10) / 10;
+interface SupplierNodeData {
+  name: string;
+  tier: number;
+  isRoot: boolean;
+  total_co2e_kg: number;
+  carbon_risk: string;
+  supplier_id: string;
+  onNavigate: (id: string) => void;
+}
 
-    return (
-      <div key={node.supplier_id} className="flex flex-col items-start space-y-4 my-2">
-        {/* Node Box */}
-        <div
-          onClick={() => !isRoot && navigate(`/app/suppliers/${node.supplier_id}`)}
-          className={`p-4 rounded-lg border transition-all ${
-            isRoot
-              ? 'bg-[#1B3A2D] text-white border-[#254F3E] w-80 shadow-md cursor-default'
-              : 'carbonix-card bg-white hover:border-[#1B3A2D] w-72 cursor-pointer'
-          }`}
-        >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              {isRoot ? <Building2 className="w-4 h-4 text-[#7A9B8A]" /> : <Layers className="w-4 h-4 text-stone-400" />}
-              <span className={`font-mono-data text-[10px] uppercase font-bold ${isRoot ? 'text-[#7A9B8A]' : 'text-stone-500'}`}>
-                {isRoot ? 'Buyer Organization Root' : `Tier ${node.tier}`}
+/* ─── Custom node component ──────────────────────────────── */
+
+const SupplierNode: React.FC<NodeProps<SupplierNodeData>> = ({ data }) => {
+  const safeTier = Math.max(0, Math.min(data.tier ?? 0, 3));
+  const t = TIER_THEME[safeTier];
+  const tonnes = Math.round(((data.total_co2e_kg ?? 0) / 1000) * 10) / 10;
+
+  return (
+    <>
+      {!data.isRoot && (
+        <Handle type="target" position={Position.Top} style={{ opacity: 0, pointerEvents: 'none' }} />
+      )}
+
+      <div
+        style={{
+          width: NODE_W,
+          background: t.bg,
+          border: `1px solid ${data.isRoot ? t.border : '#e5e2dc'}`,
+          borderLeft: `4px solid ${t.border}`,
+          borderRadius: 10,
+          boxShadow: data.isRoot ? '0 4px 20px rgba(27,58,45,0.25)' : '0 1px 6px rgba(0,0,0,0.07)',
+          cursor: data.isRoot ? 'default' : 'pointer',
+        }}
+      >
+        <div style={{ padding: '12px 14px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 5 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+              {data.isRoot
+                ? <Building2 size={13} color={t.label} />
+                : <ChevronRight size={12} color={t.label} />
+              }
+              <span style={{ fontFamily: 'monospace', fontSize: 9, fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', color: t.label }}>
+                {data.isRoot ? 'Buyer (Root)' : `Tier ${safeTier} Supplier`}
               </span>
             </div>
-            {!isRoot && <Badge risk={node.carbon_risk} size="sm" />}
+            {!data.isRoot && <Badge risk={(data.carbon_risk || 'low') as any} size="sm" />}
           </div>
 
-          <h4 className={`font-heading font-bold text-base mt-1.5 ${isRoot ? 'text-white' : 'text-[#1B3A2D]'}`}>
-            {node.name}
-          </h4>
+          <div style={{ fontWeight: 700, fontSize: 13, color: data.isRoot ? '#fff' : '#1B3A2D', lineHeight: 1.35, marginBottom: 8 }}>
+            {data.name || 'Unknown'}
+          </div>
 
-          <div className="flex items-baseline space-x-2 mt-2 pt-2 border-t border-dashed border-[#E1DFDA]/60">
-            <span className={`font-mono-data text-sm font-bold ${isRoot ? 'text-emerald-300' : 'text-[#1B3A2D]'}`}>
-              {totalTonnes.toLocaleString()} tCO₂e
+          <div style={{ borderTop: `1px dashed ${data.isRoot ? 'rgba(255,255,255,0.2)' : '#e5e2dc'}`, paddingTop: 7, display: 'flex', alignItems: 'baseline', gap: 6 }}>
+            <span style={{ fontFamily: 'monospace', fontSize: 12, fontWeight: 700, color: data.isRoot ? '#6ee7b7' : '#1B3A2D' }}>
+              {tonnes.toLocaleString()} tCO₂e
             </span>
-            {!isRoot && (
-              <span className="text-[10px] text-stone-500 font-mono-data hover:underline">
-                View detail →
-              </span>
+            {!data.isRoot && (
+              <span style={{ fontFamily: 'monospace', fontSize: 9, color: '#a8a29e' }}>View detail →</span>
             )}
           </div>
         </div>
-
-        {/* Children Sub-trees */}
-        {node.children && node.children.length > 0 && (
-          <div className="pl-6 border-l-2 border-dashed border-[#7A9B8A]/40 space-y-4 ml-4">
-            {node.children.map((child) => renderNode(child))}
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  return (
-    <div className="space-y-6">
-      {/* Page Header */}
-      <div className="carbonix-card p-6 bg-white flex items-center justify-between">
-        <div>
-          <div className="flex items-center space-x-2">
-            <FolderTree className="w-5 h-5 text-[#1B3A2D]" />
-            <h2 className="font-heading text-xl font-bold text-[#1B3A2D]">
-              Multi-Tier Supply Chain Hierarchy Tree
-            </h2>
-          </div>
-
-          <p className="text-xs text-stone-500 mt-1">
-            Visualizing dependency tree topology from Tier 1 buyers down to sub-tier suppliers. Click any node for detail breakdown.
-          </p>
-        </div>
-
-        <div className="flex items-center space-x-4 text-xs font-mono-data">
-          <span className="flex items-center"><span className="w-3 h-3 rounded-full bg-[#1B3A2D] mr-1.5"></span> Org Root</span>
-          <span className="flex items-center"><span className="w-3 h-3 rounded-full bg-rose-600 mr-1.5"></span> High Risk Node</span>
-          <span className="flex items-center"><span className="w-3 h-3 rounded-full bg-emerald-600 mr-1.5"></span> Compliant Node</span>
-        </div>
       </div>
 
-      {/* Interactive Tree Workspace */}
-      <div className="carbonix-card p-8 bg-[#F7F5F0]/60 overflow-x-auto min-h-[500px]">
-        {renderNode(hierarchy, true)}
-      </div>
-    </div>
+      <Handle type="source" position={Position.Bottom} style={{ opacity: 0, pointerEvents: 'none' }} />
+    </>
   );
 };
+
+const NODE_TYPES = { supplier: SupplierNode };
+
+/* ─── Layout algorithm ───────────────────────────────────── */
+
+function subtreeWidth(node: HierarchyNode): number {
+  if (!node.children || node.children.length === 0) return NODE_W;
+  const total = node.children.reduce((s, c) => s + subtreeWidth(c) + H_GAP, 0) - H_GAP;
+  return Math.max(NODE_W, total);
+}
+
+type RawRoot = { 
+  org_id?: string; supplier_id?: string; 
+  org_name?: string; name?: string; 
+  total_co2e_kg?: number; 
+  children?: HierarchyNode[];
+};
+
+function buildGraph(
+  rawRoot: RawRoot,
+  onNavigate: (id: string) => void,
+): { nodes: Node[]; edges: Edge[] } {
+  const nodes: Node[] = [];
+  const edges: Edge[] = [];
+
+  // Place root at centre
+  const rootId = rawRoot.org_id || rawRoot.supplier_id || '__root__';
+  nodes.push({
+    id: rootId,
+    type: 'supplier',
+    position: { x: -NODE_W / 2, y: 0 },
+    data: {
+      name: rawRoot.org_name || rawRoot.name || 'Organisation Root',
+      tier: 0,
+      isRoot: true,
+      total_co2e_kg: rawRoot.total_co2e_kg ?? 0,
+      carbon_risk: 'low',
+      supplier_id: rootId,
+      onNavigate,
+    } satisfies SupplierNodeData,
+  });
+
+  function walk(node: HierarchyNode, xCenter: number, yOffset: number, parentId: string) {
+    const id = node.supplier_id;
+    const nodeTier = Math.max(1, node.tier ?? 1); // ensure minimum tier 1 for children
+    
+    nodes.push({
+      id,
+      type: 'supplier',
+      position: { x: xCenter - NODE_W / 2, y: yOffset },
+      data: {
+        name: node.name,
+        tier: nodeTier,
+        isRoot: false,
+        total_co2e_kg: node.total_co2e_kg,
+        carbon_risk: node.carbon_risk ?? 'low',
+        supplier_id: id,
+        onNavigate,
+      } satisfies SupplierNodeData,
+    });
+
+    const parentTier = Math.max(0, Math.min(nodeTier - 1, 3));
+    const parentTheme = TIER_THEME[parentTier];
+    
+    edges.push({
+      id: `e-${parentId}-${id}`,
+      source: parentId,
+      target: id,
+      type: 'smoothstep',
+      style: { stroke: parentTheme.edge, strokeWidth: 2, opacity: 0.7 },
+    });
+
+    if (!node.children || node.children.length === 0) return;
+    const totalW = node.children.reduce((s, c) => s + subtreeWidth(c) + H_GAP, 0) - H_GAP;
+    let cx = xCenter - totalW / 2;
+    for (const child of node.children) {
+      const cw = subtreeWidth(child);
+      walk(child, cx + cw / 2, yOffset + NODE_H + V_GAP, id);
+      cx += cw + H_GAP;
+    }
+  }
+
+  // Layout Tier-1 children centred under root
+  const children = rawRoot.children ?? [];
+  const totalW = children.reduce((s, c) => s + subtreeWidth(c) + H_GAP, 0) - H_GAP;
+  let cx = -totalW / 2;
+  for (const child of children) {
+    const cw = subtreeWidth(child);
+    walk(child, cx + cw / 2, NODE_H + V_GAP, rootId);
+    cx += cw + H_GAP;
+  }
+
+  return { nodes, edges };
+}
+
+/* ─── Fit-view button (must live INSIDE ReactFlow) ───────── */
+
+const FitViewButton: React.FC = () => {
+  const { fitView } = useReactFlow();
+  return (
+    <button
+      onClick={() => fitView({ padding: 0.18, duration: 400 })}
+      style={{
+        position: 'absolute', top: 12, right: 12, zIndex: 10,
+        background: '#fff', border: '1px solid #e5e2dc', borderRadius: 8,
+        padding: '6px 10px', display: 'flex', alignItems: 'center', gap: 5,
+        fontSize: 11, fontFamily: 'monospace', color: '#1B3A2D',
+        cursor: 'pointer', boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
+      }}
+    >
+      <Maximize2 size={13} /> Fit view
+    </button>
+  );
+};
+
+/* ─── Inner canvas component (owns all RF hooks) ────────── */
+
+interface FlowCanvasProps {
+  rawRoot: RawRoot;
+  onNavigate: (id: string) => void;
+}
+
+const FlowCanvas: React.FC<FlowCanvasProps> = ({ rawRoot, onNavigate }) => {
+  const [nodes, setNodes, onNodesChange] = useNodesState([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+
+  useEffect(() => {
+    try {
+      const { nodes: ns, edges: es } = buildGraph(rawRoot, onNavigate);
+      setNodes(ns);
+      setEdges(es);
+    } catch (err) {
+      console.error("Failed to build graph:", err);
+    }
+  }, [rawRoot, onNavigate, setNodes, setEdges]);
+
+  const handleNodeClick = useCallback((_event: React.MouseEvent, node: Node) => {
+    const data = node.data as SupplierNodeData;
+    if (!data.isRoot && data.supplier_id) {
+      data.onNavigate(data.supplier_id);
+    }
+  }, []);
+
+  return (
+    <ReactFlow
+      nodes={nodes}
+      edges={edges}
+      onNodesChange={onNodesChange}
+      onEdgesChange={onEdgesChange}
+      onNodeClick={handleNodeClick}
+      nodeTypes={NODE_TYPES}
+      fitView
+      fitViewOptions={{ padding: 0.2 }}
+      minZoom={0.15}
+      maxZoom={2}
+      nodesDraggable={false}
+      nodesConnectable={false}
+      proOptions={{ hideAttribution: true }}
+    >
+      <Background variant={BackgroundVariant.Dots} gap={20} size={1} color="#D6D1C9" />
+      <Controls showInteractive={false} style={{ boxShadow: '0 1px 6px rgba(0,0,0,0.1)', borderRadius: 8 }} />
+      <MiniMap
+        nodeColor={(n) => {
+          const safeTier = Math.max(0, Math.min((n.data as SupplierNodeData).tier ?? 0, 3));
+          return TIER_THEME[safeTier].border;
+        }}
+        maskColor="rgba(247,245,240,0.75)"
+        style={{ borderRadius: 8, border: '1px solid #e5e2dc' }}
+      />
+      <FitViewButton />
+    </ReactFlow>
+  );
+};
+
+/* ─── Page ───────────────────────────────────────────────── */
+
+import { ErrorBoundary } from '../components/ErrorBoundary';
+
+export const HierarchyPage: React.FC<HierarchyPageProps> = ({ period }) => {
+  const navigate = useNavigate();
+  const [rawRoot, setRawRoot] = useState<RawRoot | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const onNavigate = useCallback((id: string) => navigate(`/app/suppliers/${id}`), [navigate]);
+
+  useEffect(() => {
+    setLoading(true);
+    api.getHierarchy(period).then((res) => {
+      setRawRoot(res as unknown as RawRoot);
+      setLoading(false);
+    });
+  }, [period]);
+
+  const LEGEND = [
+    { color: '#1B3A2D', label: 'Buyer Root' },
+    { color: '#2D6A4F', label: 'Tier 1' },
+    { color: '#52B788', label: 'Tier 2' },
+    { color: '#95D5B2', label: 'Tier 3' },
+  ];
+
+  return (
+    <ErrorBoundary>
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="carbonix-card p-6 bg-white flex items-center justify-between">
+          <div>
+            <div className="flex items-center space-x-2">
+              <FolderTree className="w-5 h-5 text-[#1B3A2D]" />
+              <h2 className="font-heading text-xl font-bold text-[#1B3A2D]">
+                Multi-Tier Supply Chain Hierarchy
+              </h2>
+            </div>
+            <p className="text-xs text-stone-500 mt-1">
+              Scroll to zoom · Drag to pan · Click any supplier to view detail
+            </p>
+          </div>
+          <div className="flex items-center space-x-4 text-xs font-mono-data">
+            {LEGEND.map(({ color, label }) => (
+              <span key={label} className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full" style={{ background: color }} />
+                {label}
+              </span>
+            ))}
+            <span className="flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-rose-500" /> High Risk
+            </span>
+          </div>
+        </div>
+
+        {/* Canvas */}
+        <div className="carbonix-card overflow-hidden" style={{ height: 640, background: '#F7F5F0' }}>
+          {loading || !rawRoot ? (
+            <div className="flex items-center justify-center h-full text-stone-500 font-mono-data text-xs">
+              Constructing multi-tier supply chain tree…
+            </div>
+          ) : (
+            <ReactFlowProvider>
+              <FlowCanvas rawRoot={rawRoot} onNavigate={onNavigate} />
+            </ReactFlowProvider>
+          )}
+        </div>
+      </div>
+    </ErrorBoundary>
+  );
+};
+

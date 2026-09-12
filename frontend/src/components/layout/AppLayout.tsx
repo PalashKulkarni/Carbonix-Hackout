@@ -29,7 +29,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
   };
 
   return (
-    <div className="flex min-h-screen bg-[#F7F5F0]">
+    <div className="flex h-screen overflow-hidden bg-[#F7F5F0]">
       {/* Persistent Carbonix Deep Forest Sidebar */}
       <Sidebar onLogout={handleLogout} />
 
