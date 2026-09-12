@@ -97,6 +97,26 @@ export const api = {
     return data;
   },
 
+  requestPasswordReset: async (email: string): Promise<{ message: string }> => {
+    const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+    if (!response.ok) throw new Error('Unable to request password reset');
+    return response.json();
+  },
+
+  resetPassword: async (token: string, password: string): Promise<{ message: string }> => {
+    const response = await fetch(`${API_BASE_URL}/auth/reset-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token, password }),
+    });
+    if (!response.ok) throw new Error('This password reset link is invalid or has expired.');
+    return response.json();
+  },
+
   getAuthMe: async (): Promise<{ org_id: string; org_name: string; email: string }> => {
     return fetchWithFallback('/auth/me', {}, {
       org_id: 'org_apex',

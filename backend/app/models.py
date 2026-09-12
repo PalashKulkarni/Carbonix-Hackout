@@ -30,6 +30,17 @@ class User(Base):
     is_demo: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
 
+class PasswordResetToken(Base):
+    __tablename__ = "password_reset_tokens"
+
+    reset_token_id: Mapped[str] = mapped_column(String, primary_key=True)
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.user_id"), nullable=False, index=True)
+    token_hash: Mapped[str] = mapped_column(String, unique=True, nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+
+
 class Supplier(Base):
     __tablename__ = "suppliers"
 

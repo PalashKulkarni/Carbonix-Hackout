@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-route
 import { AppLayout } from './components/layout/AppLayout';
 import { LandingPage } from './pages/LandingPage';
 import { LoginPage } from './pages/LoginPage';
+import { ResetPasswordPage } from './pages/ResetPasswordPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { SuppliersListPage } from './pages/SuppliersListPage';
 import { SupplierDetailPage } from './pages/SupplierDetailPage';
@@ -45,6 +46,7 @@ const AppRoutes: React.FC = () => {
       {/* Public Pages */}
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
 
       {/* App Shell Routes */}
       <Route

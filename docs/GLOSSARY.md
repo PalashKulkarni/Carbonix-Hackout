@@ -11,6 +11,7 @@ Never rename these in UI, API, DB, or ML without updating this file, `API_CONTRA
 | `factor_id` | string | Prefix `fac_` |
 | `recommendation_id` | string | Prefix `rec_` |
 | `scenario_id` | string | Prefix `scn_` |
+| `reset_token_id` | string | Prefix `prt_`. Internal identifier for one-time password reset records |
 | `parent_id` | string \| null | Supplier’s parent. `null` = Tier 1 reporting to the org |
 
 ## Enums
@@ -111,3 +112,12 @@ UI may **display** tonnes (divide by 1000) but JSON stays `co2e_kg`.
 - `period` query: `YYYY` (calendar year) or `last_12m`
 - Default: `2025`
 - Timestamps: ISO-8601 UTC (`2025-06-01T00:00:00Z`)
+
+## Password reset fields
+
+| Field | Type | Meaning |
+|---|---|---|
+| `token` | string | Opaque one-time credential in the reset URL. Never store or return it after creation. |
+| `token_hash` | string | SHA-256 hash of the reset token, stored server-side. |
+| `expires_at` | timestamp | Token expiry; password reset tokens expire after 30 minutes. |
+| `used_at` | timestamp \| null | Set once the token is consumed or superseded by a newer reset request. |

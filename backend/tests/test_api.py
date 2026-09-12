@@ -1,4 +1,5 @@
 from pathlib import Path
+from urllib.parse import parse_qs, urlparse
 
 from fastapi.testclient import TestClient
 import pytest
@@ -48,6 +49,49 @@ def test_signup_login_and_me_round_trip():
     me = TestClient(app, headers={"Authorization": f"Bearer {token}"}).get("/auth/me")
     assert me.status_code == 200
     assert me.json()["email"] == email
+
+
+def test_password_reset_is_emailed_and_single_use(monkeypatch):
+    email = "password-reset@example.com"
+    public_client = TestClient(app)
+    signup = public_client.post(
+        "/auth/signup",
+        json={"email": email, "password": "old-password", "org_name": "Reset Test Org"},
+    )
+    assert signup.status_code == 201
+
+    sent_messages: list[tuple[str, str]] = []
+    monkeypatch.setattr(
+        "app.main.send_password_reset_email",
+        lambda recipient, reset_url: sent_messages.append((recipient, reset_url)),
+    )
+    response = public_client.post("/auth/forgot-password", json={"email": email})
+    assert response.status_code == 200
+    assert response.json() == {
+        "message": "If an account exists for this email, a password reset link has been sent."
+    }
+    assert sent_messages[0][0] == email
+    token = parse_qs(urlparse(sent_messages[0][1]).query)["token"][0]
+
+    reset = public_client.post("/auth/reset-password", json={"token": token, "password": "new-password"})
+    assert reset.status_code == 200
+    assert reset.json() == {"message": "Your password has been reset. You can now sign in."}
+    assert public_client.post("/auth/reset-password", json={"token": token, "password": "another-password"}).status_code == 400
+    assert public_client.post("/auth/login", json={"email": email, "password": "new-password"}).status_code == 200
+
+
+def test_password_reset_request_hides_unknown_accounts(monkeypatch):
+    sent_messages: list[tuple[str, str]] = []
+    monkeypatch.setattr(
+        "app.main.send_password_reset_email",
+        lambda recipient, reset_url: sent_messages.append((recipient, reset_url)),
+    )
+    response = TestClient(app).post("/auth/forgot-password", json={"email": "missing@example.com"})
+    assert response.status_code == 200
+    assert response.json() == {
+        "message": "If an account exists for this email, a password reset link has been sent."
+    }
+    assert sent_messages == []
 
 
 def test_suppliers_returns_fixture_shape():
@@ -123,6 +167,21 @@ def test_chat_answers_supplier_and_logistics_questions():
     assert "ranked #1" in supplier.json()["content"]
     assert "15% high-risk threshold" in supplier.json()["content"]
     assert "0.62 tCO2e" in logistics.json()["content"]
+
+
+def test_chat_handles_greetings_and_out_of_scope_questions(monkeypatch):
+    monkeypatch.delenv("GROQ_API_KEY", raising=False)
+    greeting = client.post(
+        "/chat",
+        json={"messages": [{"role": "user", "content": "नमस्ते"}]},
+    )
+    unrelated = client.post(
+        "/chat",
+        json={"messages": [{"role": "user", "content": "Write me a recipe for pasta"}]},
+    )
+
+    assert "Carbonix assistant" in greeting.json()["content"]
+    assert "supply-chain carbon data" in unrelated.json()["content"]
 
 
 def test_scenario_simulation_matches_golden_fixture():

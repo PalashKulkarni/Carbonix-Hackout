@@ -101,7 +101,26 @@ flowchart TD
 
 ---
 
+<<<<<<< HEAD
 ##  Preview
+=======
+## Password reset email (local development)
+
+The backend can send real password-reset emails through Gmail SMTP. Copy
+`backend/.env.example` to `backend/.env`, set `SMTP_USERNAME` and a Gmail
+**App Password** (not your normal Google password), then start the backend.
+The backend loads that local file automatically. Never commit or share
+`backend/.env`.
+
+For Gmail delivery, Carbonix always uses the authenticated `SMTP_USERNAME` as
+the sender address. This lets Gmail attach its DKIM signature; do not set a
+different address as the sender.
+
+Reset links use `FRONTEND_URL` and expire after 30 minutes. The link can be
+used only once.
+
+## ML Benchmarks
+>>>>>>> 97f430b (Added forgot password mail functionality)
 
 > *Drop in actual product screenshots or a demo GIF here — e.g.:*
 

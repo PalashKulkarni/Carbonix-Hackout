@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.data import load_fixture
 from app.engine_adapter import calculate_and_rank
-from app.models import EmissionFactor, EmissionResult, Org, Recommendation, Supplier, User
+from app.models import EmissionFactor, EmissionResult, Org, PasswordResetToken, Recommendation, Supplier, User
 from app.recommendations import refresh_recommendations
 
 ORG_ID = "org_apex"
@@ -23,6 +23,7 @@ SUPPLIER_FIELDS = (
 
 
 def seed_demo(database: Session) -> list[dict[str, Any]]:
+    database.execute(delete(PasswordResetToken))
     database.execute(delete(EmissionResult))
     database.execute(delete(Supplier))
     database.execute(delete(EmissionFactor))

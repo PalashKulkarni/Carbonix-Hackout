@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import os
+from dataclasses import dataclass
 from typing import Any
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
@@ -21,6 +22,28 @@ from app.models import EmissionResult, Recommendation, Supplier
 
 GROQ_CHAT_URL = "https://api.groq.com/openai/v1/chat/completions"
 GROQ_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-20b")
+
+
+@dataclass(frozen=True)
+class ChatIntent:
+    kind: str
+    normalized_question: str
+
+
+def _is_greeting(question: str) -> bool:
+    normalized = question.casefold().strip(" .,!?")
+    greetings = {
+        "hi", "hello", "hey", "good morning", "good afternoon", "good evening",
+        "how are you", "namaste", "नमस्ते", "नमस्कार", "hola", "bonjour", "ciao",
+        "hallo", "olá", "مرحبا", "السلام عليكم", "你好", "こんにちは", "안녕하세요",
+    }
+    return normalized in greetings
+
+
+def _looks_out_of_scope(question: str) -> bool:
+    normalized = question.casefold()
+    unrelated_terms = ("recipe", "pasta", "weather", "poem", "joke", "movie", "song", "sports score")
+    return any(term in normalized for term in unrelated_terms)
 
 
 def _tonnes(value_kg: float) -> str:
@@ -150,49 +173,96 @@ def answer_inventory_question(database: Session, org_id: str, question: str, per
     )
 
 
-def _polish_with_groq(question: str, factual_answer: str) -> str | None:
-    """Use Groq only to improve wording; the supplied facts remain authoritative."""
+def _request_groq(messages: list[dict[str, str]], max_completion_tokens: int = 220) -> str | None:
     api_key = os.getenv("GROQ_API_KEY")
     if not api_key:
         return None
-
-    prompt = (
-        "You are the Carbonix inventory assistant. Answer the user's question using ONLY the supplied "
-        "inventory answer. Do not add, alter, infer, or omit names, numbers, rankings, risk levels, "
-        "or recommendations. Keep the response concise, helpful, and under 120 words.\n\n"
-        f"User question: {question}\n\n"
-        f"Authoritative inventory answer: {factual_answer}"
-    )
     payload = json.dumps({
         "model": GROQ_MODEL,
-        "messages": [
-            {"role": "system", "content": "Never invent carbon inventory data."},
-            {"role": "user", "content": prompt},
-        ],
+        "messages": messages,
         "temperature": 0.1,
-        "max_completion_tokens": 220,
+        "max_completion_tokens": max_completion_tokens,
+        "response_format": {"type": "json_object"},
     }).encode()
     request = Request(
         GROQ_CHAT_URL,
         data=payload,
-        headers={
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json",
-        },
+        headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
         method="POST",
     )
     try:
         with urlopen(request, timeout=12) as response:
-            content = json.loads(response.read().decode())["choices"][0]["message"]["content"].strip()
-        return content or None
+            return json.loads(response.read().decode())["choices"][0]["message"]["content"].strip() or None
     except (HTTPError, URLError, TimeoutError, KeyError, IndexError, TypeError, ValueError, json.JSONDecodeError):
         return None
 
 
+def _interpret_question(question: str) -> ChatIntent:
+    """Translate/classify a question before it reaches the deterministic data layer."""
+    if _is_greeting(question):
+        return ChatIntent("greeting", question)
+    if _looks_out_of_scope(question):
+        return ChatIntent("out_of_scope", question)
+    response = _request_groq([
+        {"role": "system", "content": (
+            "Classify the user message for a Carbonix supply-chain emissions assistant. "
+            "Return JSON only: {\"kind\": \"inventory\"|\"greeting\"|\"out_of_scope\", "
+            "\"normalized_question\": \"concise English retrieval question\"}. "
+            "Inventory includes suppliers, emissions, hotspots, carbon risk, intensity, logistics, factors, "
+            "recommendations, and scenarios. Translate any language to English. Greetings and small talk are greeting. "
+            "Anything unrelated to Carbonix inventory is out_of_scope."
+        )},
+        {"role": "user", "content": question},
+    ], max_completion_tokens=100)
+    if response:
+        try:
+            parsed = json.loads(response)
+            kind = parsed.get("kind")
+            normalized_question = str(parsed.get("normalized_question") or question)
+            if kind in {"inventory", "greeting", "out_of_scope"}:
+                return ChatIntent(kind, normalized_question)
+        except (TypeError, ValueError, json.JSONDecodeError):
+            pass
+    return ChatIntent("inventory", question)
+
+
+def _respond_with_groq(question: str, factual_answer: str, intent: str) -> str | None:
+    """Use Groq for multilingual phrasing, never as the source of inventory facts."""
+    prompt = (
+        "Return JSON only: {\"reply\": \"...\"}. Reply in the same language as the user. "
+        "Keep it concise and helpful. "
+        "For inventory: use ONLY the supplied authoritative answer; do not add, alter, infer, or omit figures. "
+        "For greeting: greet warmly and briefly say you can help with Carbonix suppliers, emissions, hotspots, "
+        "recommendations, logistics, and scenarios. For out_of_scope: politely say you only assist with Carbonix "
+        "supply-chain carbon data, and name the supported topics.\n\n"
+        f"Intent: {intent}\n"
+        f"User question: {question}\n\n"
+        f"Authoritative inventory answer: {factual_answer}"
+    )
+    response = _request_groq([
+        {"role": "system", "content": "Never invent or change Carbonix inventory data."},
+        {"role": "user", "content": prompt},
+    ])
+    if response:
+        try:
+            return str(json.loads(response).get("reply") or "").strip() or None
+        except (TypeError, ValueError, json.JSONDecodeError):
+            return None
+    return None
+
+
 def answer_chat_question(database: Session, org_id: str, question: str, period: str) -> str:
-    """Return a grounded answer, optionally polished by Groq when configured."""
-    factual_answer = answer_inventory_question(database, org_id, question, period)
-    polished_answer = _polish_with_groq(question, factual_answer)
+    """Respond conversationally while preserving a deterministic data boundary."""
+    intent = _interpret_question(question)
+    if intent.kind == "greeting":
+        fallback = "Hello! I am the Carbonix assistant. I can help with suppliers, emissions, hotspots, recommendations, logistics, and scenarios."
+    elif intent.kind == "out_of_scope":
+        fallback = "I am focused on Carbonix supply-chain carbon data. Ask me about suppliers, emissions, hotspots, carbon risk, logistics, recommendations, factors, or scenarios."
+    else:
+        fallback = answer_inventory_question(database, org_id, intent.normalized_question, period)
+    polished_answer = _respond_with_groq(question, fallback, intent.kind)
     if polished_answer is None:
-        return factual_answer
-    return f"{polished_answer}\n\nVerified inventory data: {factual_answer}"
+        return fallback
+    if intent.kind != "inventory":
+        return polished_answer
+    return f"{polished_answer}\n\nVerified inventory data: {fallback}"

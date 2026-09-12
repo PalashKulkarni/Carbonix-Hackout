@@ -12,6 +12,8 @@ __pycache__/
 # Local configuration, reports, logs, and build output
 .env
 .env.*
+!.env.example
+!backend/.env.example
 .coverage
 coverage.xml
 htmlcov/

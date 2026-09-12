@@ -46,13 +46,29 @@ Body: `{ "email": string, "password": string }`
 
 Response: same shape as demo login. Invalid credentials return `401 UNAUTHORIZED`.
 
+### `POST /auth/forgot-password`
+
+Body: `{ "email": string }`
+
+Response golden: `fixtures/password-reset.json` → `forgot_password_response`.
+
+Always returns the same response whether or not an account exists. For an existing account, the backend creates a 30-minute, one-time reset token and sends a reset link by configured SMTP. The raw token is never stored.
+
+### `POST /auth/reset-password`
+
+Body: `{ "token": string, "password": string }` (`password` minimum 8 characters)
+
+Response golden: `fixtures/password-reset.json` → `reset_password_response`.
+
+Invalid, expired, or previously-used links return `400 VALIDATION_ERROR` with a shared message.
+
 ### `GET /auth/me`
 
 Requires `Authorization: Bearer <token>`.
 
 Response: `{ "org_id", "org_name", "email" }`
 
-All non-public API routes require the same bearer header. Public routes are health, demo login, signup, login, and API documentation.
+All non-public API routes require the same bearer header. Public routes are health, demo login, signup, login, forgot-password, reset-password, and API documentation.
 
 ---
 

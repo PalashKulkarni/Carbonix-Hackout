@@ -1,9 +1,14 @@
 import csv
+import hashlib
 import io
+import os
+import secrets
 import sys
 from pathlib import Path
 from typing import Any, Literal
 from uuid import uuid4
+from datetime import datetime, timedelta, timezone
+from urllib.parse import quote
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
@@ -19,9 +24,10 @@ except ModuleNotFoundError:
     from backend.engine import ScenarioInput, SupplierActivityInput, simulate_scenario as run_scenario
 from app.data import load_fixture
 from app.db import Base, SessionLocal, engine, get_db
-from app.models import EmissionFactor, EmissionResult, Org, Recommendation, Supplier, User
+from app.models import EmissionFactor, EmissionResult, Org, PasswordResetToken, Recommendation, Supplier, User
 from app.auth import create_token, decode_token, hash_password, verify_password
 from app.chat import answer_chat_question
+from app.mailer import send_password_reset_email
 from app.engine_adapter import calculate_and_rank, factor_registry, supplier_activity
 from app.model_a_adapter import fill_activity
 from app.repository import (
@@ -54,7 +60,7 @@ app.add_middleware(
 
 @app.middleware("http")
 async def require_auth(request, call_next):
-    public_paths = {"/health", "/auth/demo", "/auth/login", "/auth/signup", "/docs", "/openapi.json", "/redoc"}
+    public_paths = {"/health", "/auth/demo", "/auth/login", "/auth/signup", "/auth/forgot-password", "/auth/reset-password", "/docs", "/openapi.json", "/redoc"}
     if request.method == "OPTIONS" or request.url.path in public_paths or request.url.path.startswith("/docs/"):
         return await call_next(request)
     authorization = request.headers.get("Authorization", "")
@@ -85,6 +91,15 @@ class SignupRequest(BaseModel):
     email: str
     password: str = Field(min_length=8)
     org_name: str = Field(min_length=1, max_length=160)
+
+
+class ForgotPasswordRequest(BaseModel):
+    email: str
+
+
+class ResetPasswordRequest(BaseModel):
+    token: str = Field(min_length=20, max_length=512)
+    password: str = Field(min_length=8)
 
 
 class SupplierCreateRequest(BaseModel):
@@ -228,6 +243,58 @@ def login(request: LoginRequest, database: Session = Depends(get_db)) -> Any:
         return JSONResponse(status_code=401, content={"error": {"code": "UNAUTHORIZED", "message": "Invalid email or password", "details": []}})
     organization = database.get(Org, user.org_id)
     return DemoAuthResponse(token=create_token(user.user_id, user.org_id, user.email), org_id=user.org_id, org_name=organization.name if organization else "", email=user.email)
+
+
+@app.post("/auth/forgot-password")
+def forgot_password(request: ForgotPasswordRequest, database: Session = Depends(get_db)) -> dict[str, str]:
+    """Always return the same response to avoid account-enumeration attacks."""
+    user = database.query(User).filter(User.email == request.email.lower()).first()
+    if user is not None:
+        now = datetime.now(timezone.utc)
+        for previous_token in database.query(PasswordResetToken).filter(
+            PasswordResetToken.user_id == user.user_id,
+            PasswordResetToken.used_at.is_(None),
+        ):
+            previous_token.used_at = now
+        raw_token = secrets.token_urlsafe(32)
+        token_hash = hashlib.sha256(raw_token.encode()).hexdigest()
+        database.add(PasswordResetToken(
+            reset_token_id=f"prt_{uuid4().hex}",
+            user_id=user.user_id,
+            token_hash=token_hash,
+            expires_at=now + timedelta(minutes=30),
+        ))
+        database.commit()
+        frontend_url = os.environ.get("FRONTEND_URL", "http://localhost:5173").rstrip("/")
+        reset_url = f"{frontend_url}/reset-password?token={quote(raw_token)}"
+        try:
+            send_password_reset_email(user.email, reset_url)
+        except Exception:
+            # Keep the response generic. SMTP errors must not expose account state.
+            pass
+    return {"message": "If an account exists for this email, a password reset link has been sent."}
+
+
+@app.post("/auth/reset-password")
+def reset_password(request: ResetPasswordRequest, database: Session = Depends(get_db)) -> Any:
+    token_hash = hashlib.sha256(request.token.encode()).hexdigest()
+    reset_token = database.query(PasswordResetToken).filter(
+        PasswordResetToken.token_hash == token_hash,
+        PasswordResetToken.used_at.is_(None),
+    ).first()
+    now = datetime.now(timezone.utc)
+    expires_at = reset_token.expires_at if reset_token is not None else now
+    if expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=timezone.utc)
+    if reset_token is None or expires_at < now:
+        return JSONResponse(status_code=400, content={"error": {"code": "VALIDATION_ERROR", "message": "This password reset link is invalid or has expired.", "details": []}})
+    user = database.get(User, reset_token.user_id)
+    if user is None:
+        return JSONResponse(status_code=400, content={"error": {"code": "VALIDATION_ERROR", "message": "This password reset link is invalid or has expired.", "details": []}})
+    user.password_hash = hash_password(request.password)
+    reset_token.used_at = now
+    database.commit()
+    return {"message": "Your password has been reset. You can now sign in."}
 
 
 @app.get("/auth/me", response_model=AuthMeResponse)
@@ -658,4 +725,3 @@ def update_recommendation_status(
     recommendation.status = request.status
     database.commit()
     return recommendation_dict(recommendation)
-

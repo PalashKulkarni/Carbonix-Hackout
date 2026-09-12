@@ -21,6 +21,19 @@ Demo: `org_apex`, Apex Manufacturing.
 | `password_hash` | text nullable (demo user may skip) |
 | `is_demo` | bool |
 
+## `password_reset_tokens`
+
+One-time credentials for password recovery. The raw reset token is never stored.
+
+| Column | Type |
+|---|---|
+| `reset_token_id` | PK |
+| `user_id` | FK users, indexed |
+| `token_hash` | text unique |
+| `expires_at` | timestamptz |
+| `used_at` | timestamptz nullable |
+| `created_at` | timestamptz |
+
 ## `suppliers`
 
 | Column | Type |

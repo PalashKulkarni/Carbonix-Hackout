@@ -10,6 +10,7 @@ export const LoginPage: React.FC = () => {
   const [password, setPassword] = useState('');
   const [orgName, setOrgName] = useState('');
   const [isSignup, setIsSignup] = useState(false);
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -39,6 +40,16 @@ export const LoginPage: React.FC = () => {
       .finally(() => setLoading(false));
   };
 
+  const handleForgotPassword = (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    api.requestPasswordReset(email)
+      .then(() => setError('If an account exists for this email, a reset link has been sent.'))
+      .catch(() => setError('Unable to request a password reset. Please try again.'))
+      .finally(() => setLoading(false));
+  };
+
   return (
     <div className="min-h-screen bg-[#F7F5F0] flex items-center justify-center p-6 font-sans">
       <div className="w-full max-w-md">
@@ -58,14 +69,19 @@ export const LoginPage: React.FC = () => {
         {/* Login Card */}
         <div className="carbonix-card p-8 bg-white shadow-xl">
           {error && (
-            <div className="mb-4 p-3 rounded bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center space-x-2">
+            <div className={`mb-4 p-3 rounded border text-xs flex items-center space-x-2 ${error.startsWith('If an account') ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-rose-50 border-rose-200 text-rose-700'}`}>
               <ShieldAlert className="w-4 h-4 shrink-0" />
               <span>{error}</span>
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {isSignup && (
+          <form onSubmit={isForgotPassword ? handleForgotPassword : handleSubmit} className="space-y-4">
+            {isForgotPassword && (
+              <p className="text-xs text-stone-600 leading-relaxed">
+                Enter your account email and we will send a one-time reset link if the account exists.
+              </p>
+            )}
+            {isSignup && !isForgotPassword && (
               <div>
                 <label className="block text-xs font-mono-data uppercase font-semibold text-stone-600 mb-1">
                   Organization Name
@@ -100,7 +116,7 @@ export const LoginPage: React.FC = () => {
               </div>
             </div>
 
-            <div>
+            {!isForgotPassword && <div>
               <label className="block text-xs font-mono-data uppercase font-semibold text-stone-600 mb-1">
                 Security Password
               </label>
@@ -114,7 +130,7 @@ export const LoginPage: React.FC = () => {
                   required
                 />
               </div>
-            </div>
+            </div>}
 
             <div className="pt-2">
               <Button
@@ -123,12 +139,12 @@ export const LoginPage: React.FC = () => {
                 size="md"
                 className="w-full justify-center text-stone-600"
               >
-                {isSignup ? 'Create Account' : 'Sign In With Credentials'}
+                {isForgotPassword ? 'Send Reset Link' : isSignup ? 'Create Account' : 'Sign In With Credentials'}
               </Button>
             </div>
           </form>
 
-          <button
+          {!isForgotPassword && <button
             type="button"
             onClick={() => {
               setIsSignup((current) => !current);
@@ -137,6 +153,18 @@ export const LoginPage: React.FC = () => {
             className="w-full mt-4 text-xs font-mono-data text-[#1B3A2D] hover:underline"
           >
             {isSignup ? 'Already have an account? Sign in' : 'Need an account? Create one'}
+          </button>}
+
+          <button
+            type="button"
+            onClick={() => {
+              setIsForgotPassword((current) => !current);
+              setIsSignup(false);
+              setError('');
+            }}
+            className="w-full mt-3 text-xs font-mono-data text-[#1B3A2D] hover:underline"
+          >
+            {isForgotPassword ? 'Back to sign in' : 'Forgot your password?'}
           </button>
 
           {/* Quick Demo Access Divider */}
