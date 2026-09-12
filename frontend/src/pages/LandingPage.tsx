@@ -1,33 +1,39 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, ShieldCheck, BarChart3, FolderTree, Sliders, Database, Wind } from 'lucide-react';
+import { ArrowRight, ShieldCheck, BarChart3, FolderTree, Sliders, Database } from 'lucide-react';
 
-/* ─── Logo SVG ─────────────────────────────────────────────────────── */
-const CarbonixLogo: React.FC<{ size?: number; light?: boolean }> = ({ size = 38, light = false }) => (
-  <svg width={size} height={size} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-    {/* Hexagon base */}
-    <polygon
-      points="20,2 36,11 36,29 20,38 4,29 4,11"
-      fill={light ? 'rgba(255,255,255,0.15)' : '#1E4535'}
-      stroke={light ? 'rgba(255,255,255,0.6)' : '#3A7A5C'}
-      strokeWidth="1.5"
-    />
-    {/* Leaf/molecule arc */}
-    <path
-      d="M13 24 Q13 14 20 12 Q27 14 27 24"
-      stroke={light ? '#6EE7B7' : '#52C78A'}
-      strokeWidth="2"
-      fill="none"
-      strokeLinecap="round"
-    />
-    {/* CO2 molecule dots */}
-    <circle cx="20" cy="12" r="2" fill={light ? '#6EE7B7' : '#52C78A'} />
-    <circle cx="13" cy="24" r="2" fill={light ? '#6EE7B7' : '#52C78A'} />
-    <circle cx="27" cy="24" r="2" fill={light ? '#6EE7B7' : '#52C78A'} />
-    {/* Stem */}
-    <line x1="20" y1="24" x2="20" y2="29" stroke={light ? '#6EE7B7' : '#52C78A'} strokeWidth="2" strokeLinecap="round" />
-  </svg>
-);
+/* ─── Logo: clean "Cx" wordmark with a supply-chain node ring ──────── */
+const CarbonixLogo: React.FC<{ size?: number; light?: boolean }> = ({ size = 38, light = false }) => {
+  const fg  = light ? '#ffffff' : '#1E4535';
+  const dot = light ? '#6EE7B7' : '#3CB87A';
+  const ring = light ? 'rgba(255,255,255,0.35)' : '#B2D9C4';
+  return (
+    <svg width={size} height={size} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+      {/* Outer ring */}
+      <circle cx="20" cy="20" r="18" stroke={ring} strokeWidth="1.5" fill="none" />
+      {/* Three supply-chain nodes */}
+      <circle cx="20" cy="8"  r="3" fill={dot} />
+      <circle cx="10" cy="28" r="3" fill={dot} />
+      <circle cx="30" cy="28" r="3" fill={dot} />
+      {/* Connecting lines */}
+      <line x1="20" y1="11" x2="10" y2="25" stroke={dot} strokeWidth="1.5" strokeLinecap="round" />
+      <line x1="20" y1="11" x2="30" y2="25" stroke={dot} strokeWidth="1.5" strokeLinecap="round" />
+      <line x1="13" y1="28" x2="27" y2="28" stroke={dot} strokeWidth="1.5" strokeLinecap="round" />
+      {/* "C" letterform centred */}
+      <text
+        x="20" y="24"
+        textAnchor="middle"
+        fontSize="11"
+        fontWeight="700"
+        fontFamily="'Geist', system-ui, sans-serif"
+        fill={fg}
+        letterSpacing="-0.5"
+      >
+        Cx
+      </text>
+    </svg>
+  );
+};
 
 export const LandingPage: React.FC = () => {
   const navigate = useNavigate();
@@ -36,7 +42,7 @@ export const LandingPage: React.FC = () => {
     <div className="min-h-screen flex flex-col font-sans" style={{ background: '#EAE6DC', color: '#2C2C2C' }}>
 
       {/* ═══════════════════════════════════════════════════════════════
-          HERO — full‑viewport background image with cloud animation
+          HERO — full-viewport background image, no cloud overlay
       ═══════════════════════════════════════════════════════════════ */}
       <section className="relative w-full overflow-hidden" style={{ minHeight: '100vh' }}>
 
@@ -51,76 +57,19 @@ export const LandingPage: React.FC = () => {
           }}
         />
 
-        {/* Dark gradient overlay so text is readable */}
+        {/* Dark gradient overlay */}
         <div
           className="absolute inset-0 z-10"
           style={{
-            background: 'linear-gradient(to bottom, rgba(5,20,12,0.42) 0%, rgba(5,20,12,0.18) 55%, rgba(5,20,12,0.55) 100%)',
+            background: 'linear-gradient(to bottom, rgba(5,20,12,0.50) 0%, rgba(5,20,12,0.25) 50%, rgba(5,20,12,0.60) 100%)',
           }}
         />
 
-        {/* ── Animated cloud planes ──
-            We use 3 shifted copies of the same image at different speeds
-            and vertical positions to create a parallax cloud drift.        */}
-        <style>{`
-          @keyframes cloudDrift1 {
-            from { transform: translateX(0); }
-            to   { transform: translateX(-50%); }
-          }
-          @keyframes cloudDrift2 {
-            from { transform: translateX(-15%); }
-            to   { transform: translateX(-65%); }
-          }
-          @keyframes cloudDrift3 {
-            from { transform: translateX(-30%); }
-            to   { transform: translateX(-80%); }
-          }
-          .cloud-layer-1 {
-            position: absolute; top: 0; left: 0; z-index: 11;
-            width: 200%; height: 45%;
-            background-image: url(/hero-landscape.jpg);
-            background-repeat: repeat-x;
-            background-size: auto 100%;
-            background-position: 0 0;
-            opacity: 0.22;
-            mix-blend-mode: screen;
-            animation: cloudDrift1 18s linear infinite;
-            pointer-events: none;
-          }
-          .cloud-layer-2 {
-            position: absolute; top: 3%; left: 0; z-index: 12;
-            width: 200%; height: 38%;
-            background-image: url(/hero-landscape.jpg);
-            background-repeat: repeat-x;
-            background-size: auto 110%;
-            background-position: 0 0;
-            opacity: 0.14;
-            mix-blend-mode: screen;
-            animation: cloudDrift2 12s linear infinite;
-            pointer-events: none;
-          }
-          .cloud-layer-3 {
-            position: absolute; top: 1%; left: 0; z-index: 13;
-            width: 200%; height: 32%;
-            background-image: url(/hero-landscape.jpg);
-            background-repeat: repeat-x;
-            background-size: auto 120%;
-            background-position: 0 -5%;
-            opacity: 0.10;
-            mix-blend-mode: screen;
-            animation: cloudDrift3 8s linear infinite;
-            pointer-events: none;
-          }
-        `}</style>
-
-        <div className="cloud-layer-1" />
-        <div className="cloud-layer-2" />
-        <div className="cloud-layer-3" />
-
         {/* ── Navigation ── */}
-        <nav className="relative z-20 w-full flex items-center justify-between px-8 py-5"
-          style={{ borderBottom: '1px solid rgba(255,255,255,0.12)' }}>
-
+        <nav
+          className="relative z-20 w-full flex items-center justify-between px-8 py-5"
+          style={{ borderBottom: '1px solid rgba(255,255,255,0.12)' }}
+        >
           {/* Logo + Brand */}
           <div className="flex items-center space-x-3">
             <CarbonixLogo size={38} light />
@@ -130,7 +79,7 @@ export const LandingPage: React.FC = () => {
               </span>
               <span
                 className="ml-2 font-mono-data text-[9px] uppercase tracking-wider px-2 py-0.5 rounded"
-                style={{ background: 'rgba(255,255,255,0.12)', color: '#86efac', border: '1px solid rgba(255,255,255,0.2)' }}
+                style={{ background: 'rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.7)', border: '1px solid rgba(255,255,255,0.2)' }}
               >
                 v2.4 Climate Portal
               </span>
@@ -173,44 +122,30 @@ export const LandingPage: React.FC = () => {
         {/* ── Hero copy ── */}
         <div className="relative z-20 flex flex-col items-center justify-center text-center px-6 pt-16 pb-32">
 
-          {/* Badge */}
-          <div
-            className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full text-xs font-mono-data font-semibold mb-8"
-            style={{
-              background: 'rgba(255,255,255,0.12)',
-              border: '1px solid rgba(255,255,255,0.3)',
-              color: '#86efac',
-              backdropFilter: 'blur(6px)',
-            }}
-          >
-            <Wind className="w-3.5 h-3.5" />
-            <span>Research-Grade Scope 3 Intelligence · COP28 Compliant</span>
-          </div>
-
-          {/* H1 — hollow/outlined style */}
+          {/* H1 — solid white, bold, heavy drop shadow for punch */}
           <h1
-            className="font-heading font-bold tracking-tight leading-none mb-6"
+            className="font-heading font-bold tracking-tight leading-tight mb-4"
             style={{
               fontSize: 'clamp(2.8rem, 7vw, 5.5rem)',
-              color: 'transparent',
-              WebkitTextStroke: '1.5px rgba(255,255,255,0.9)',
-              textShadow: '0 2px 40px rgba(0,0,0,0.3)',
-              maxWidth: '900px',
+              color: '#ffffff',
+              textShadow: '0 2px 4px rgba(0,0,0,0.8), 0 8px 32px rgba(0,0,0,0.5)',
+              maxWidth: '920px',
             }}
           >
             Carbon-Aware Supply Chain
           </h1>
-          {/* Subtitle in solid white for contrast */}
+
+          {/* Subtitle */}
           <h2
             className="font-heading font-semibold tracking-tight mb-6"
             style={{
-              fontSize: 'clamp(1.8rem, 4vw, 3.2rem)',
-              color: '#fff',
-              textShadow: '0 2px 20px rgba(0,0,0,0.4)',
+              fontSize: 'clamp(1.6rem, 3.5vw, 2.8rem)',
+              color: 'rgba(255,255,255,0.92)',
+              textShadow: '0 2px 12px rgba(0,0,0,0.5)',
               maxWidth: '800px',
             }}
           >
-            Intelligence & Decarbonization
+            Intelligence &amp; Decarbonization
           </h2>
 
           <p
@@ -227,17 +162,16 @@ export const LandingPage: React.FC = () => {
 
           {/* CTAs */}
           <div className="flex flex-col sm:flex-row items-center gap-4">
-            {/* Primary: Google Sign-in style (placeholder) */}
+            {/* Google Sign-in placeholder */}
             <button
               onClick={() => navigate('/login')}
               className="flex items-center gap-3 px-6 py-3 rounded-full text-sm font-semibold transition-all hover:-translate-y-0.5 hover:shadow-xl"
               style={{
-                background: 'rgba(255,255,255,0.95)',
+                background: 'rgba(255,255,255,0.97)',
                 color: '#1E4535',
-                boxShadow: '0 4px 20px rgba(0,0,0,0.25)',
+                boxShadow: '0 4px 20px rgba(0,0,0,0.28)',
               }}
             >
-              {/* Google G icon placeholder */}
               <svg viewBox="0 0 24 24" width="18" height="18">
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                 <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -265,16 +199,16 @@ export const LandingPage: React.FC = () => {
             No credit card required · COP28-compliant audit trail · SOC 2 ready
           </p>
 
-          {/* ── Stat strip ── */}
+          {/* Stat strip */}
           <div
             className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-px w-full max-w-4xl rounded-2xl overflow-hidden"
             style={{ border: '1px solid rgba(255,255,255,0.2)' }}
           >
             {[
               { label: 'Total Audited Carbon', value: '285.4 tCO₂e', sub: '-12.3% YoY baseline' },
-              { label: 'Audited Suppliers', value: '1,247', sub: 'Multi-tier coverage' },
-              { label: 'Compliance Rate', value: '94.2%', sub: '+2.4% validated' },
-              { label: 'Risk Index', value: '73 / 100', sub: 'Borderline threshold' },
+              { label: 'Audited Suppliers',     value: '1,247',       sub: 'Multi-tier coverage' },
+              { label: 'Compliance Rate',       value: '94.2%',       sub: '+2.4% validated'     },
+              { label: 'Risk Index',            value: '73 / 100',    sub: 'Borderline threshold' },
             ].map((stat, i) => (
               <div
                 key={i}
@@ -285,13 +219,13 @@ export const LandingPage: React.FC = () => {
                   {stat.label}
                 </p>
                 <p className="font-heading text-2xl font-bold text-white">{stat.value}</p>
-                <p className="font-mono-data text-[11px] mt-1" style={{ color: '#86efac' }}>{stat.sub}</p>
+                <p className="font-mono-data text-[11px] mt-1" style={{ color: 'rgba(255,255,255,0.55)' }}>{stat.sub}</p>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Bottom fade into next section */}
+        {/* Bottom fade */}
         <div
           className="absolute bottom-0 left-0 right-0 h-32 z-20"
           style={{ background: 'linear-gradient(to bottom, transparent, #EAE6DC)' }}
@@ -311,7 +245,7 @@ export const LandingPage: React.FC = () => {
               How It Works
             </span>
             <h2 className="font-heading text-3xl md:text-4xl font-bold mt-4" style={{ color: '#1E4535' }}>
-              End-to-End Climate Telemetry & Action
+              End-to-End Climate Telemetry &amp; Action
             </h2>
             <p className="mt-3 text-sm" style={{ color: '#6B7B72' }}>
               From raw activity ingest to machine-assisted supplier decarbonization
@@ -320,10 +254,10 @@ export const LandingPage: React.FC = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             {[
-              { icon: <Database className="w-5 h-5" />, step: '01', title: 'Ingest Data', desc: 'Import supplier CSV activity logs or gap-fill via Model A. Primary or modelled data, both supported.' },
+              { icon: <Database className="w-5 h-5" />, step: '01', title: 'Ingest Data',         desc: 'Import supplier CSV activity logs or gap-fill via Model A. Primary or modelled data, both supported.' },
               { icon: <BarChart3 className="w-5 h-5" />, step: '02', title: 'Calculate Footprint', desc: 'Deterministic factor engine evaluates energy, transport, material, manufacturing & logistics emissions.' },
-              { icon: <FolderTree className="w-5 h-5" />, step: '03', title: 'Map Hotspots', desc: 'Visualize multi-tier supplier trees and geographic pins to isolate high-carbon risk nodes in real time.' },
-              { icon: <Sliders className="w-5 h-5" />, step: '04', title: 'Simulate Actions', desc: 'Model circular alternatives, renewable energy PPAs and modal transport shifts with live What-If sliders.' },
+              { icon: <FolderTree className="w-5 h-5" />, step: '03', title: 'Map Hotspots',       desc: 'Visualize multi-tier supplier trees and geographic pins to isolate high-carbon risk nodes in real time.' },
+              { icon: <Sliders className="w-5 h-5" />,   step: '04', title: 'Simulate Actions',   desc: 'Model circular alternatives, renewable energy PPAs and modal transport shifts with live What-If sliders.' },
             ].map((item, i) => (
               <div
                 key={i}
@@ -361,7 +295,6 @@ export const LandingPage: React.FC = () => {
             Join forward-looking procurement and sustainability teams using Carbonix.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            {/* Google Sign-in placeholder */}
             <button
               onClick={() => navigate('/login')}
               className="flex items-center gap-3 px-7 py-3 rounded-full text-sm font-semibold transition-all hover:-translate-y-0.5 hover:shadow-xl"
@@ -378,7 +311,7 @@ export const LandingPage: React.FC = () => {
             <button
               onClick={() => navigate('/login')}
               className="px-7 py-3 rounded-full text-sm font-semibold transition-all hover:-translate-y-0.5"
-              style={{ background: 'transparent', color: '#86efac', border: '1.5px solid rgba(134,239,172,0.4)' }}
+              style={{ background: 'transparent', color: 'rgba(255,255,255,0.85)', border: '1.5px solid rgba(255,255,255,0.35)' }}
             >
               Use Demo Account →
             </button>
@@ -398,7 +331,7 @@ export const LandingPage: React.FC = () => {
             <CarbonixLogo size={30} light />
             <div>
               <span className="font-heading text-base font-bold text-white">Carbonix</span>
-              <p className="font-mono-data text-[10px] mt-0.5" style={{ color: '#6EE7B7' }}>
+              <p className="font-mono-data text-[10px] mt-0.5" style={{ color: 'rgba(255,255,255,0.45)' }}>
                 Supply Chain Intel Platform v2.4
               </p>
             </div>
