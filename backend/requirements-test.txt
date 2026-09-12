@@ -1,0 +1,5 @@
+# Minimal dependencies required to execute the current backend engine and Model A tests.
+# The experimental Model A training script has separate optional dependencies
+# (joblib, numpy, pandas, scikit-learn) and is not part of runtime validation.
+pydantic>=2.0,<3.0
+pytest>=8.0,<10.0
