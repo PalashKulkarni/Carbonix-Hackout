@@ -23,7 +23,7 @@ import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { ToastAlert } from '../components/ui/ToastAlert';
 import { api } from '../services/api';
-import type { DashboardData } from '../types';
+import type { DashboardData, Supplier } from '../types';
 
 
 interface DashboardPageProps {
@@ -41,13 +41,18 @@ const CATEGORY_COLORS: Record<string, string> = {
 export const DashboardPage: React.FC<DashboardPageProps> = ({ period }) => {
   const navigate = useNavigate();
   const [data, setData] = useState<DashboardData | null>(null);
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadDashboard = async () => {
       setLoading(true);
-      const res = await api.getDashboard(period);
-      setData(res);
+      const [dashboard, supplierResponse] = await Promise.all([
+        api.getDashboard(period),
+        api.getSuppliers(period),
+      ]);
+      setData(dashboard);
+      setSuppliers(supplierResponse.items);
       setLoading(false);
     };
     loadDashboard();
@@ -63,11 +68,17 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ period }) => {
 
   // Convert co2e_kg to tCO2e for display (divide by 1000)
   const totalInTonnes = Math.round((data.total_co2e_kg / 1000) * 10) / 10;
+  const hotspotThreshold = data.total_co2e_kg * 0.15;
+  const thresholdSuppliers = suppliers.filter(
+    (supplier) => (supplier.total_co2e_kg ?? 0) >= hotspotThreshold,
+  );
+  const thresholdNames = thresholdSuppliers.map((supplier) => supplier.name).join(', ');
 
   const categoryChartData = data.by_category.map((cat) => ({
     name: cat.emission_category.toUpperCase(),
     val: Math.round(cat.co2e_kg / 100) / 10, // in tCO2e
     rawKg: cat.co2e_kg,
+    displayValue: `${(cat.co2e_kg / 1000).toFixed(2)} tCO₂e`,
     categoryKey: cat.emission_category,
   }));
 
@@ -79,13 +90,15 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ period }) => {
 
   return (
     <div className="space-y-6">
-      {/* Toast Threshold Alert (Carbonix Plate 10) */}
-      <ToastAlert
-        type="warning"
-        title="Scope 3 Hotspot Threshold Alert"
-        message="SteelCo India & AluCo Extrusions exceed 15% of org total footprint. Immediate supplier intervention recommended."
-        timestamp="4 MINS AGO AT MUMBAI AUDIT NODE"
-      />
+      {/* Derived from the current inventory using the engine's 15% organization-share rule. */}
+      {thresholdSuppliers.length > 0 && (
+        <ToastAlert
+          type="warning"
+          title="Scope 3 Hotspot Threshold Alert"
+          message={`${thresholdNames} ${thresholdSuppliers.length === 1 ? 'exceeds' : 'exceed'} 15% of the current organization footprint. Immediate supplier intervention recommended.`}
+          timestamp={`CALCULATED FROM ${period} INVENTORY`}
+        />
+      )}
 
       {/* 01. KPI CARDS GRID */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
@@ -149,13 +162,29 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ period }) => {
                   formatter={(val: any) => [`${val} tCO₂e`, 'Emissions']}
                   contentStyle={{ backgroundColor: '#1B3A2D', color: '#FFF', borderRadius: '6px', fontSize: '12px' }}
                 />
-                <Bar dataKey="val" radius={[4, 4, 0, 0]}>
+                <Bar dataKey="val" radius={[4, 4, 0, 0]} minPointSize={6}>
                   {categoryChartData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={CATEGORY_COLORS[entry.categoryKey] || '#1B3A2D'} />
                   ))}
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 mt-3 pt-3 border-t border-[#E1DFDA]">
+            {categoryChartData.map((category) => (
+              <div key={category.categoryKey} className="min-w-0">
+                <div className="flex items-center gap-1.5 text-[10px] font-mono-data text-stone-500 uppercase">
+                  <span
+                    className="w-2 h-2 shrink-0 rounded-full"
+                    style={{ backgroundColor: CATEGORY_COLORS[category.categoryKey] || '#1B3A2D' }}
+                  />
+                  {category.name}
+                </div>
+                <p className="mt-1 font-mono-data text-xs font-bold text-[#1B3A2D]">
+                  {category.displayValue}
+                </p>
+              </div>
+            ))}
           </div>
         </div>
 
