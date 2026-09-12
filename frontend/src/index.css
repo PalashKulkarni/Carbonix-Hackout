@@ -1,0 +1,122 @@
+@import url('https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600;700&family=Geist:wght@300;400;500;600;700&family=Lora:ital,wght@0,500;0,600;0,700;1,400&family=Newsreader:ital,opsz,wght@0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,400&display=swap');
+
+@import "tailwindcss";
+
+
+@theme {
+  --font-serif: 'Newsreader', 'Lora', Georgia, serif;
+  --font-sans: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'Geist Mono', monospace;
+
+  --color-forest-primary: #1B3A2D;
+  --color-forest-dark: #12281F;
+  --color-forest-light: #254F3E;
+  
+  --color-sage-secondary: #7A9B8A;
+  --color-sage-light: #EBF2EE;
+  
+  --color-canvas-warm: #F7F5F0;
+  --color-canvas-card: #FFFFFF;
+  
+  --color-charcoal-text: #2C2C2C;
+  --color-charcoal-muted: #666666;
+  
+  --color-amber-warning: #D4A843;
+  --color-amber-bg: #FDF9EE;
+  
+  --color-red-critical: #C45B4A;
+  --color-red-bg: #FDF2F0;
+  
+  --color-green-success: #2D6A4F;
+  --color-green-bg: #EEF7F2;
+  
+  --color-border-muted: #E1DFDA;
+  --color-border-strong: #C8C5BE;
+}
+
+:root {
+  font-family: var(--font-sans);
+  color: var(--color-charcoal-text);
+  background-color: var(--color-canvas-warm);
+  color-scheme: light;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #F7F5F0;
+  color: #2C2C2C;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #F7F5F0;
+}
+::-webkit-scrollbar-thumb {
+  background: #C8C5BE;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #7A9B8A;
+}
+
+/* Academic & Scientific Card Contour */
+.carbonix-card {
+  background-color: #FFFFFF;
+  border: 1.5px solid #E1DFDA;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(27, 58, 45, 0.04);
+  transition: all 0.2s ease-in-out;
+}
+
+.carbonix-card:hover {
+  border-color: #C8C5BE;
+  box-shadow: 0 4px 12px rgba(27, 58, 45, 0.08);
+}
+
+.carbonix-card-dark {
+  background-color: #1B3A2D;
+  color: #F7F5F0;
+  border: 1.5px solid #254F3E;
+  border-radius: 6px;
+}
+
+/* Header typography styling */
+.font-heading {
+  font-family: 'Newsreader', 'Lora', Georgia, serif;
+}
+
+.font-mono-data {
+  font-family: 'Geist Mono', monospace;
+}
+
+/* Pulsing Badge & Status Indicators */
+.badge-compliant {
+  background-color: #EEF7F2;
+  color: #2D6A4F;
+  border: 1px solid #B8E2CA;
+}
+
+.badge-at-risk {
+  background-color: #FDF9EE;
+  color: #9C7720;
+  border: 1px solid #F3E3B3;
+}
+
+.badge-critical {
+  background-color: #FDF2F0;
+  color: #C45B4A;
+  border: 1px solid #F6C8C1;
+}
+
+.badge-pending {
+  background-color: #F3F4F6;
+  color: #4B5563;
+  border: 1px solid #E5E7EB;
+}
