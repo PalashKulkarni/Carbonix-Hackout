@@ -18,20 +18,20 @@
 
 ---
 
-## 📖 Overview
+##  Overview
 
 Companies increasingly need to report and reduce **Scope 3 (supply chain) emissions** — but most lack the tools to trace carbon impact across multi-tier suppliers.
 
 **Carbonix** ingests supplier-level data (energy use, transport distances, materials, production volume) and calculates an **aggregated, auditable carbon footprint** across the entire supply chain. It highlights the highest-impact nodes, ranks suppliers by risk and intensity, and recommends circular sourcing alternatives to cut emissions — all backed by a validated calculation engine and two production-grade ML models.
 
-## 👥 Who It's For
+##  Who It's For
 
 - Corporate sustainability teams
 - Supply chain managers
 - ESG auditors
 - Suppliers
 
-## 🎯 Why It Matters
+##  Why It Matters
 
 - Improves the **accuracy and transparency** of Scope 3 emissions reporting
 - Helps companies **identify and prioritize** the highest-impact reduction opportunities
@@ -39,7 +39,7 @@ Companies increasingly need to report and reduce **Scope 3 (supply chain) emissi
 
 ---
 
-## ✨ Features
+##  Features
 
 ### Core
 
@@ -64,11 +64,11 @@ Companies increasingly need to report and reduce **Scope 3 (supply chain) emissi
 - **Historical Emission Trends** — tracks total, supplier, category, and tier emissions over time
 - **ESG Report Export** — auto-generated PDF with executive summary, rankings, breakdowns, hotspots, and recommendations
 
-> ✅ All of the above are fully implemented in this build.
+>  All of the above are fully implemented in this build.
 
 ---
 
-## 🏗️ Architecture
+##  Architecture
 
 Carbonix is built around three core computational components:
 
@@ -80,12 +80,12 @@ Carbonix is built around three core computational components:
 
 ```mermaid
 flowchart LR
-    A[📥 Supplier Data\nCSV / Manual / Demo] --> B[⚙️ Carbon Engine\nActivity × Emission Factor]
-    B --> C[📊 Dashboard\nHotspots · Rankings · Trends]
-    B --> D[🤖 Model A\nEnergy Estimation]
-    B --> E[🔁 Model B\nSourcing Recommendation]
+    A[ Supplier Data\nCSV / Manual / Demo] --> B[ Carbon Engine\nActivity × Emission Factor]
+    B --> C[ Dashboard\nHotspots · Rankings · Trends]
+    B --> D[ Model A\nEnergy Estimation]
+    B --> E[ Model B\nSourcing Recommendation]
     D --> C
-    E --> F[🌍 Circular Sourcing\nSuggestions + Δ CO₂e]
+    E --> F[ Circular Sourcing\nSuggestions + Δ CO₂e]
     F --> C
 ```
 
@@ -101,7 +101,7 @@ flowchart TD
 
 ---
 
-## 🖼️ Preview
+##  Preview
 
 > *Drop in actual product screenshots or a demo GIF here — e.g.:*
 
@@ -113,14 +113,14 @@ flowchart TD
 
 | View | What it shows |
 |---|---|
-| 🏠 Dashboard | Total CO₂e, emissions by supplier/tier/category, live hotspots |
-| 🗺️ Hotspot Map | Suppliers plotted geographically, node size = emissions |
-| 🧪 Scenario Simulator | Slide recycled %, renewable %, rail % → see projected CO₂e drop |
-| 🏆 Supplier Ranking | Leaderboard by total CO₂e, intensity, and carbon risk |
+|  Dashboard | Total CO₂e, emissions by supplier/tier/category, live hotspots |
+|  Hotspot Map | Suppliers plotted geographically, node size = emissions |
+|  Scenario Simulator | Slide recycled %, renewable %, rail % → see projected CO₂e drop |
+|  Supplier Ranking | Leaderboard by total CO₂e, intensity, and carbon risk |
 
 ---
 
-## 🛠️ Tech Stack
+##  Tech Stack
 
 | Layer | Technology |
 |---|---|
@@ -131,7 +131,7 @@ flowchart TD
 
 ---
 
-## 📊 Benchmark Results (Live Run)
+##  Benchmark Results (Live Run)
 
 | Component | Metric | ML / System | Baseline | Result |
 |---|---|---|---|---|
@@ -150,7 +150,7 @@ flowchart TD
 
 ---
 
-## 🚀 Getting Started
+##  Get it running locally now !
 
 ### Prerequisites
 
@@ -183,12 +183,12 @@ Open `http://127.0.0.1:5173/`. During local development, the frontend uses the A
 
 ## 👨‍💻 Team
 
-Built at **DAU Hackout'26** by:
+Built at **DAU HackOut'26** by:
 
+- Palash Kulkarni
+- Khush Patel
 - Anvesh Anand Pol
 - Harshil Dhameliya
-- Khush Patel
-- Palash Kulkarni
 
 ---
 
