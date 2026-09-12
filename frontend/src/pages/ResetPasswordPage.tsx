@@ -97,7 +97,7 @@ export const ResetPasswordPage: React.FC = () => {
         <h1
           style={{
             fontFamily: "'Newsreader', Georgia, serif",
-            fontSize: '2rem',
+            fontSize: '1.75rem',
             fontWeight: 700,
             color: '#fff',
             textShadow: '0 2px 8px rgba(0,0,0,0.6)',

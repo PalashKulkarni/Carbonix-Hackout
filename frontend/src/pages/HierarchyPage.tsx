@@ -312,19 +312,22 @@ export const HierarchyPage: React.FC<HierarchyPageProps> = ({ period }) => {
     <ErrorBoundary>
       <div className="space-y-6">
         {/* Header */}
-        <div className="carbonix-card p-6 bg-white flex items-center justify-between">
+        <div
+          className="rounded-xl p-6 flex items-center justify-between"
+          style={{ background: 'linear-gradient(135deg, #1A3D2E 0%, #254F3E 100%)', border: '1px solid #2D6A4F' }}
+        >
           <div>
             <div className="flex items-center space-x-2">
-              <FolderTree className="w-5 h-5 text-[#1B3A2D]" />
-              <h2 className="font-heading text-xl font-bold text-[#1B3A2D]">
+              <FolderTree className="w-5 h-5" style={{ color: '#8FB3A0' }} />
+              <h2 className="font-heading text-xl font-bold text-white">
                 Multi-Tier Supply Chain Hierarchy
               </h2>
             </div>
-            <p className="text-xs text-stone-500 mt-1">
+            <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.50)' }}>
               Scroll to zoom · Drag to pan · Click any supplier to view detail
             </p>
           </div>
-          <div className="flex items-center space-x-4 text-xs font-mono-data">
+          <div className="flex items-center space-x-4 text-xs font-mono-data" style={{ color: 'rgba(255,255,255,0.65)' }}>
             {LEGEND.map(({ color, label }) => (
               <span key={label} className="flex items-center gap-1.5">
                 <span className="w-2.5 h-2.5 rounded-full" style={{ background: color }} />
@@ -337,10 +340,13 @@ export const HierarchyPage: React.FC<HierarchyPageProps> = ({ period }) => {
           </div>
         </div>
 
-        {/* Canvas */}
-        <div className="carbonix-card overflow-hidden" style={{ height: 640, background: '#F7F5F0' }}>
+        {/* Canvas — dark mission-control background */}
+        <div
+          className="rounded-xl overflow-hidden"
+          style={{ height: 640, background: '#12281F', border: '1px solid #1A3828', boxShadow: 'inset 0 2px 20px rgba(0,0,0,0.4)' }}
+        >
           {loading || !rawRoot ? (
-            <div className="flex items-center justify-center h-full text-stone-500 font-mono-data text-xs">
+            <div className="flex items-center justify-center h-full font-mono-data text-xs" style={{ color: '#3A6A4F' }}>
               Constructing multi-tier supply chain tree…
             </div>
           ) : (

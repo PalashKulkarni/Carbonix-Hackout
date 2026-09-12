@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { SlidersHorizontal, TrendingDown, RotateCcw } from 'lucide-react';
-import { Button } from '../components/ui/Button';
 import { api } from '../services/api';
 import type { ScenarioSimulationResponse } from '../types';
 
@@ -59,96 +58,83 @@ export const ScenariosPage: React.FC<ScenariosPageProps> = ({ period }) => {
 
   return (
     <div className="space-y-6">
-      {/* Header Banner */}
-      <div className="carbonix-card p-6 bg-white flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      {/* ── Header Banner ── */}
+      <div
+        className="rounded-xl p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
+        style={{ background: 'linear-gradient(135deg, #1A3D2E 0%, #254F3E 100%)', border: '1px solid #2D6A4F' }}
+      >
         <div>
           <div className="flex items-center space-x-2">
-            <SlidersHorizontal className="w-5 h-5 text-[#1B3A2D]" />
-            <h2 className="font-heading text-xl font-bold text-[#1B3A2D]">
+            <SlidersHorizontal className="w-5 h-5" style={{ color: '#8FB3A0' }} />
+            <h2 className="font-heading text-xl font-bold text-white">
               What-If Decarbonization Scenario Simulator
             </h2>
           </div>
-          <p className="text-xs text-stone-500 mt-1">
+          <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.55)' }}>
             Simulate corporate procurement shifts across raw materials, grid electrification, and freight modal choices.
           </p>
         </div>
-
-        <Button
-          variant="outline"
-          size="sm"
-          icon={<RotateCcw className="w-3.5 h-3.5" />}
+        <button
           onClick={handleReset}
+          className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-all hover:-translate-y-0.5"
+          style={{ background: 'rgba(255,255,255,0.1)', color: '#fff', border: '1.5px solid rgba(255,255,255,0.3)', backdropFilter: 'blur(8px)' }}
         >
-          Reset Sliders to Baseline
-        </Button>
+          <RotateCcw className="w-3.5 h-3.5" />
+          Reset Sliders
+        </button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Sliders Control Panel (2 Columns) */}
-        <div className="carbonix-card p-6 lg:col-span-2 space-y-6 bg-white">
-          <h3 className="font-heading text-base font-bold text-[#1B3A2D] pb-3 border-b border-[#E1DFDA]">
+        <div className="lg:col-span-2 p-6 space-y-6 rounded-xl" style={{ background: '#163325', border: '1px solid #1E4535' }}>
+          <h3 className="font-heading text-base font-bold pb-3 border-b" style={{ color: '#8FB3A0', borderColor: '#1E4535' }}>
             Procurement Shift Parameters (0% – 100%)
           </h3>
 
           {/* Slider 1: Recycled Material */}
           <div className="space-y-2">
             <div className="flex items-center justify-between text-xs font-mono-data">
-              <span className="font-bold text-[#1B3A2D] uppercase">1. Recycled Material Content</span>
-              <span className="px-2 py-0.5 bg-[#1B3A2D]/10 rounded text-[#1B3A2D] font-bold">
+              <span className="font-bold uppercase" style={{ color: '#8FB3A0' }}>1. Recycled Material Content</span>
+              <span className="px-2 py-0.5 rounded font-bold" style={{ background: 'rgba(143,179,160,0.15)', color: '#6EE7B7' }}>
                 {recycledPct}% Shifted
               </span>
             </div>
-            <input
-              type="range"
-              min="0"
-              max="100"
-              value={recycledPct}
+            <input type="range" min="0" max="100" value={recycledPct}
               onChange={(e) => handleSliderChange('rec', Number(e.target.value))}
-              className="w-full accent-[#1B3A2D] cursor-pointer"
-            />
-            <p className="text-[11px] text-stone-500 font-sans">
+              className="w-full cursor-pointer" style={{ accentColor: '#6EE7B7' }} />
+            <p className="text-[11px] font-sans" style={{ color: 'rgba(255,255,255,0.40)' }}>
               Blend virgin steel, aluminium, and plastic procurement towards certified recycled feedstock factors.
             </p>
           </div>
 
           {/* Slider 2: Renewable Energy */}
-          <div className="space-y-2 pt-2 border-t border-stone-100">
+          <div className="space-y-2 pt-2 border-t" style={{ borderColor: '#1E4535' }}>
             <div className="flex items-center justify-between text-xs font-mono-data">
-              <span className="font-bold text-[#1B3A2D] uppercase">2. Supplier Renewable Energy PPA</span>
-              <span className="px-2 py-0.5 bg-[#1B3A2D]/10 rounded text-[#1B3A2D] font-bold">
+              <span className="font-bold uppercase" style={{ color: '#8FB3A0' }}>2. Supplier Renewable Energy PPA</span>
+              <span className="px-2 py-0.5 rounded font-bold" style={{ background: 'rgba(143,179,160,0.15)', color: '#6EE7B7' }}>
                 {renewablePct}% Shifted
               </span>
             </div>
-            <input
-              type="range"
-              min="0"
-              max="100"
-              value={renewablePct}
+            <input type="range" min="0" max="100" value={renewablePct}
               onChange={(e) => handleSliderChange('ren', Number(e.target.value))}
-              className="w-full accent-[#1B3A2D] cursor-pointer"
-            />
-            <p className="text-[11px] text-stone-500 font-sans">
+              className="w-full cursor-pointer" style={{ accentColor: '#6EE7B7' }} />
+            <p className="text-[11px] font-sans" style={{ color: 'rgba(255,255,255,0.40)' }}>
               Transition supplier electricity consumption off coal grids towards solar and renewable PPAs.
             </p>
           </div>
 
           {/* Slider 3: Rail Transport */}
-          <div className="space-y-2 pt-2 border-t border-stone-100">
+          <div className="space-y-2 pt-2 border-t" style={{ borderColor: '#1E4535' }}>
             <div className="flex items-center justify-between text-xs font-mono-data">
-              <span className="font-bold text-[#1B3A2D] uppercase">3. Rail & Sea Modal Transport Shift</span>
-              <span className="px-2 py-0.5 bg-[#1B3A2D]/10 rounded text-[#1B3A2D] font-bold">
+              <span className="font-bold uppercase" style={{ color: '#8FB3A0' }}>3. Rail &amp; Sea Modal Transport Shift</span>
+              <span className="px-2 py-0.5 rounded font-bold" style={{ background: 'rgba(143,179,160,0.15)', color: '#6EE7B7' }}>
                 {railPct}% Shifted
               </span>
             </div>
-            <input
-              type="range"
-              min="0"
-              max="100"
-              value={railPct}
+            <input type="range" min="0" max="100" value={railPct}
               onChange={(e) => handleSliderChange('rail', Number(e.target.value))}
-              className="w-full accent-[#1B3A2D] cursor-pointer"
-            />
-            <p className="text-[11px] text-stone-500 font-sans">
+              className="w-full cursor-pointer" style={{ accentColor: '#6EE7B7' }} />
+            <p className="text-[11px] font-sans" style={{ color: 'rgba(255,255,255,0.40)' }}>
               Shift inbound air and road freight tonne-km to low-carbon rail and sea freight routes.
             </p>
           </div>

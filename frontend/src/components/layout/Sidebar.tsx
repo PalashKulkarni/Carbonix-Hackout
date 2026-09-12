@@ -10,7 +10,6 @@ import {
   Database,
   FileSpreadsheet,
   ShieldCheck,
-  Leaf,
   LogOut
 } from 'lucide-react';
 
@@ -35,11 +34,25 @@ export const Sidebar: React.FC<SidebarProps> = ({ onLogout }) => {
 
 
   return (
-    <aside className="w-64 bg-[#1B3A2D] text-[#F7F5F0] min-h-screen flex flex-col border-r border-[#254F3E] shrink-0 select-none">
+    <aside className="w-64 text-[#F7F5F0] min-h-screen flex flex-col shrink-0 select-none" style={{ background: 'linear-gradient(170deg, #254F3E 0%, #1B3A2D 60%, #163325 100%)', borderRight: '1px solid #1E4535' }}>
       {/* Brand Header */}
       <div className="p-6 border-b border-[#254F3E]/60 flex items-center space-x-3">
-        <div className="w-9 h-9 rounded-lg bg-[#7A9B8A]/20 border border-[#7A9B8A]/40 flex items-center justify-center text-[#7A9B8A]">
-          <Leaf className="w-5 h-5 text-[#7A9B8A]" />
+        <div className="w-9 h-9 flex items-center justify-center">
+          <svg width="36" height="36" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M 64,32 C 72,34 78,41 78,50 C 78,59 72,66 64,68" stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none" opacity="0.55" />
+            <circle cx="64" cy="32" r="2.4" fill="#6EE7B7" opacity="0.75" />
+            <circle cx="64" cy="68" r="2.4" fill="#6EE7B7" opacity="0.75" />
+            <path d="M 60,24 C 74,26 85,37 85,50 C 85,63 74,74 60,76" stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none" opacity="0.68" />
+            <circle cx="60" cy="24" r="2.4" fill="#6EE7B7" opacity="0.85" />
+            <circle cx="60" cy="76" r="2.4" fill="#6EE7B7" opacity="0.85" />
+            <path d="M 55,17 C 73,18 92,32 92,50 C 92,68 73,82 55,83" stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none" opacity="0.82" />
+            <circle cx="55" cy="17" r="2.6" fill="#6EE7B7" />
+            <circle cx="55" cy="83" r="2.6" fill="#6EE7B7" />
+            <path d="M 50,10 C 74,10 97,28 97,50 C 97,72 74,90 50,90" stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none" opacity="0.92" />
+            <circle cx="50" cy="10" r="2.8" fill="#6EE7B7" />
+            <circle cx="50" cy="90" r="2.8" fill="#6EE7B7" />
+            <path d="M 44,8 C 72,6 100,26 100,50 C 100,74 72,94 44,92" stroke="white" strokeWidth="1.8" strokeLinecap="round" fill="none" opacity="0.38" />
+          </svg>
         </div>
         <div>
           <h1 className="font-heading text-xl font-bold tracking-tight text-[#F7F5F0]">

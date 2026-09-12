@@ -24,7 +24,7 @@ export const Header: React.FC<HeaderProps> = ({
   loading,
 }) => {
   return (
-    <header className="bg-white border-b border-[#E1DFDA] px-6 py-4 flex items-center justify-between sticky top-0 z-10 shadow-xs">
+    <header className="px-6 py-4 flex items-center justify-between sticky top-0 z-10" style={{ background: 'rgba(255,255,255,0.78)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', borderBottom: '1px solid rgba(216,212,204,0.7)', boxShadow: '0 1px 12px rgba(30,69,53,0.06)' }}>
       <div>
         <div className="flex items-center space-x-3">
           <h1 className="font-heading text-2xl font-bold text-[#2C2C2C] tracking-tight">

@@ -92,8 +92,45 @@ export const SuppliersListPage: React.FC<SuppliersListPageProps> = ({ period }) 
     );
   });
 
+  const highCount   = filteredSuppliers.filter(s => s.carbon_risk === 'high').length;
+  const medCount    = filteredSuppliers.filter(s => s.carbon_risk === 'medium').length;
+  const lowCount    = filteredSuppliers.filter(s => s.carbon_risk === 'low').length;
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
+      {/* ── Dark Header Strip ── */}
+      <div
+        className="rounded-xl px-7 py-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
+        style={{ background: 'linear-gradient(135deg, #1A3D2E 0%, #254F3E 100%)', border: '1px solid #2D6A4F' }}
+      >
+        <div>
+          <p className="font-mono-data text-[10px] uppercase tracking-widest mb-1" style={{ color: '#8FB3A0' }}>
+            Supplier Inventory · {period}
+          </p>
+          <div className="flex items-baseline gap-2">
+            <span className="font-heading font-bold text-white" style={{ fontSize: '1.8rem', lineHeight: 1 }}>
+              {loading ? '—' : filteredSuppliers.length}
+            </span>
+            <span className="font-mono-data text-base font-semibold" style={{ color: '#8FB3A0' }}>suppliers</span>
+          </div>
+        </div>
+        <div className="flex gap-6">
+          {[
+            { label: 'High Risk',   count: highCount,  color: '#F87171' },
+            { label: 'Medium Risk', count: medCount,   color: '#FCD34D' },
+            { label: 'Low Risk',    count: lowCount,   color: '#6EE7B7' },
+          ].map(s => (
+            <div key={s.label} className="text-center">
+              <div className="flex items-center gap-1.5 mb-0.5">
+                <span className="w-2 h-2 rounded-full" style={{ background: s.color }} />
+                <p className="font-mono-data text-[10px] uppercase tracking-wider" style={{ color: 'rgba(255,255,255,0.50)' }}>{s.label}</p>
+              </div>
+              <p className="font-heading text-lg font-bold text-white">{loading ? '—' : s.count}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Header Actions Bar */}
       <div className="carbonix-card p-4 flex flex-col md:flex-row items-center justify-between gap-4">
         {/* Search Input */}

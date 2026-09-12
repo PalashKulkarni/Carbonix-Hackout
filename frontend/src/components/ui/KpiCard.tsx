@@ -53,9 +53,9 @@ export const KpiCard: React.FC<KpiCardProps> = ({
         )}
       </div>
 
-      <div className="flex items-center justify-between mt-3 pt-2 border-t border-dashed border-[#E1DFDA]/60">
+      <div className="flex flex-col gap-1.5 mt-3 pt-2 border-t border-dashed border-[#E1DFDA]/60">
         {change && (
-          <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-mono-data font-medium border ${changeColors[changeType]}`}>
+          <span className={`inline-flex items-center self-start px-2 py-0.5 rounded text-xs font-mono-data font-medium border ${changeColors[changeType]}`}>
             {change}
           </span>
         )}

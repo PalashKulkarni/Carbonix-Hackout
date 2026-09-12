@@ -309,22 +309,25 @@ export const MapPage: React.FC<MapPageProps> = ({ period }) => {
     <div className="space-y-6">
 
       {/* ── Page header ──────────────────────────────────────────────────────── */}
-      <div className="carbonix-card flex items-center justify-between bg-white p-6">
+      <div
+        className="rounded-xl flex items-center justify-between p-6"
+        style={{ background: 'linear-gradient(135deg, #1A3D2E 0%, #254F3E 100%)', border: '1px solid #2D6A4F' }}
+      >
         <div>
           <div className="flex items-center space-x-2">
-            <MapPin className="h-5 w-5 text-[#1B3A2D]" />
-            <h2 className="font-heading text-xl font-bold text-[#1B3A2D]">
+            <MapPin className="h-5 w-5" style={{ color: '#8FB3A0' }} />
+            <h2 className="font-heading text-xl font-bold text-white">
               Geographic Carbon Hotspot Map
             </h2>
           </div>
-          <p className="mt-1 text-xs text-stone-500">
+          <p className="mt-1 text-xs" style={{ color: 'rgba(255,255,255,0.50)' }}>
             Heat field shows where reported supplier emissions concentrate. Marker color indicates carbon risk.
             Choose an origin and destination to overlay the driving route and transport CO₂e.
           </p>
         </div>
 
         {/* Legend */}
-        <div className="flex items-center space-x-3 text-xs font-mono-data">
+        <div className="flex items-center space-x-4 text-xs font-mono-data" style={{ color: 'rgba(255,255,255,0.65)' }}>
           <span className="flex items-center gap-1.5">
             <span className="inline-block h-2.5 w-2.5 animate-pulse rounded-full bg-[#C45B4A]" />
             High Risk

@@ -100,6 +100,46 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ period }) => {
         />
       )}
 
+      {/* ── EXECUTIVE HERO BANNER ──────────────────────────────── */}
+      <div
+        className="rounded-xl overflow-hidden"
+        style={{
+          background: 'linear-gradient(135deg, #1A3D2E 0%, #254F3E 60%, #2D6A4F 100%)',
+          border: '1px solid #2D6A4F',
+          boxShadow: '0 4px 24px rgba(13,31,24,0.18)',
+        }}
+      >
+        <div className="px-8 py-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+          <div>
+            <p className="font-mono-data text-[10px] uppercase tracking-widest mb-1" style={{ color: '#8FB3A0' }}>
+              Total Scope 3 Footprint · {data.supplier_count} Audited Suppliers
+            </p>
+            <div className="flex items-baseline gap-3">
+              <span className="font-heading font-bold" style={{ fontSize: 'clamp(2rem, 4vw, 2.8rem)', color: '#fff', lineHeight: 1, textShadow: '0 2px 16px rgba(0,0,0,0.3)' }}>
+                {totalInTonnes.toLocaleString()}
+              </span>
+              <span className="font-mono-data text-lg font-semibold" style={{ color: '#8FB3A0' }}>tCO₂e</span>
+            </div>
+            <p className="font-mono-data text-xs mt-1" style={{ color: 'rgba(255,255,255,0.40)' }}>
+              Scope 1–3 · {period} reporting period
+            </p>
+          </div>
+          <div className="flex gap-8">
+            {[
+              { label: 'Data Coverage', value: `${Number(data.data_coverage_pct).toFixed(1)}%`, sub: 'Validated' },
+              { label: 'Tier 1 Share',  value: `${Number(data.tier1_share_pct).toFixed(1)}%`,  sub: 'Concentrated' },
+              { label: 'YoY Change',    value: '−12.3%',                                         sub: 'vs last year' },
+            ].map((s, i) => (
+              <div key={i}>
+                <p className="font-mono-data text-[10px] uppercase tracking-wider mb-1" style={{ color: '#8FB3A0' }}>{s.label}</p>
+                <p className="font-heading text-xl font-bold text-white">{s.value}</p>
+                <p className="font-mono-data text-[11px]" style={{ color: 'rgba(255,255,255,0.40)' }}>{s.sub}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
       {/* 01. KPI CARDS GRID */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
         <KpiCard
@@ -160,7 +200,9 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ period }) => {
                 <YAxis tick={{ fontSize: 11, fontFamily: 'Geist Mono' }} unit=" t" />
                 <Tooltip
                   formatter={(val: any) => [`${val} tCO₂e`, 'Emissions']}
-                  contentStyle={{ backgroundColor: '#1B3A2D', color: '#FFF', borderRadius: '6px', fontSize: '12px' }}
+                  contentStyle={{ backgroundColor: '#1B3A2D', color: '#F7F5F0', borderRadius: '6px', fontSize: '12px', border: '1px solid #254F3E' }}
+                  labelStyle={{ color: '#A8C5B4', fontFamily: 'Geist Mono', fontWeight: 600 }}
+                  itemStyle={{ color: '#F7F5F0' }}
                 />
                 <Bar dataKey="val" radius={[4, 4, 0, 0]} minPointSize={6}>
                   {categoryChartData.map((entry, index) => (

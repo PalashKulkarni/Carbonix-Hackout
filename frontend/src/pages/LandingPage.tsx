@@ -2,35 +2,39 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, ShieldCheck, BarChart3, FolderTree, Sliders, Database } from 'lucide-react';
 
-/* ─── Logo: clean "Cx" wordmark with a supply-chain node ring ──────── */
+/* ─── Logo: Fingerprint-C mark matching new brand identity ──────── */
 const CarbonixLogo: React.FC<{ size?: number; light?: boolean }> = ({ size = 38, light = false }) => {
-  const fg  = light ? '#ffffff' : '#1E4535';
-  const dot = light ? '#6EE7B7' : '#3CB87A';
-  const ring = light ? 'rgba(255,255,255,0.35)' : '#B2D9C4';
+  const stroke = light ? '#ffffff' : '#1E4535';
+  const dot    = light ? '#6EE7B7' : '#2D6A4F';
   return (
-    <svg width={size} height={size} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-      {/* Outer ring */}
-      <circle cx="20" cy="20" r="18" stroke={ring} strokeWidth="1.5" fill="none" />
-      {/* Three supply-chain nodes */}
-      <circle cx="20" cy="8"  r="3" fill={dot} />
-      <circle cx="10" cy="28" r="3" fill={dot} />
-      <circle cx="30" cy="28" r="3" fill={dot} />
-      {/* Connecting lines */}
-      <line x1="20" y1="11" x2="10" y2="25" stroke={dot} strokeWidth="1.5" strokeLinecap="round" />
-      <line x1="20" y1="11" x2="30" y2="25" stroke={dot} strokeWidth="1.5" strokeLinecap="round" />
-      <line x1="13" y1="28" x2="27" y2="28" stroke={dot} strokeWidth="1.5" strokeLinecap="round" />
-      {/* "C" letterform centred */}
-      <text
-        x="20" y="24"
-        textAnchor="middle"
-        fontSize="11"
-        fontWeight="700"
-        fontFamily="'Geist', system-ui, sans-serif"
-        fill={fg}
-        letterSpacing="-0.5"
-      >
-        Cx
-      </text>
+    <svg width={size} height={size} viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+      {/* Fingerprint-style C — concentric arcs open on the right, with endpoint dots */}
+      {/* Arc 1 — innermost */}
+      <path d="M 62,50 A 14,14 0 1,0 62,51" stroke={stroke} strokeWidth="2.2" strokeLinecap="round" fill="none" opacity="0.55"
+        style={{ strokeDasharray: '0 1' }} />
+      {/* We'll use path arcs directly for the C shape */}
+      {/* Inner arc */}
+      <path d="M 64,32 C 72,34 78,41 78,50 C 78,59 72,66 64,68" stroke={stroke} strokeWidth="2.2" strokeLinecap="round" fill="none" opacity="0.60" />
+      <circle cx="64" cy="32" r="2.2" fill={dot} opacity="0.70" />
+      <circle cx="64" cy="68" r="2.2" fill={dot} opacity="0.70" />
+
+      {/* Mid-inner arc */}
+      <path d="M 60,24 C 74,26 85,37 85,50 C 85,63 74,74 60,76" stroke={stroke} strokeWidth="2.2" strokeLinecap="round" fill="none" opacity="0.70" />
+      <circle cx="60" cy="24" r="2.2" fill={dot} opacity="0.80" />
+      <circle cx="60" cy="76" r="2.2" fill={dot} opacity="0.80" />
+
+      {/* Mid arc */}
+      <path d="M 55,17 C 73,18 92,32 92,50 C 92,68 73,82 55,83" stroke={stroke} strokeWidth="2.2" strokeLinecap="round" fill="none" opacity="0.80" />
+      <circle cx="55" cy="17" r="2.4" fill={dot} />
+      <circle cx="55" cy="83" r="2.4" fill={dot} />
+
+      {/* Outer arc */}
+      <path d="M 50,10 C 74,10 97,28 97,50 C 97,72 74,90 50,90" stroke={stroke} strokeWidth="2.2" strokeLinecap="round" fill="none" opacity="0.90" />
+      <circle cx="50" cy="10" r="2.6" fill={dot} />
+      <circle cx="50" cy="90" r="2.6" fill={dot} />
+
+      {/* Outermost arc — thinner, fading */}
+      <path d="M 44,8 C 72,6 100,26 100,50 C 100,74 72,94 44,92" stroke={stroke} strokeWidth="1.6" strokeLinecap="round" fill="none" opacity="0.40" />
     </svg>
   );
 };
@@ -126,7 +130,7 @@ export const LandingPage: React.FC = () => {
           <h1
             className="font-heading font-bold tracking-tight leading-tight mb-4"
             style={{
-              fontSize: 'clamp(2.8rem, 7vw, 5.5rem)',
+              fontSize: 'clamp(2.2rem, 5vw, 4.2rem)',
               color: '#ffffff',
               textShadow: '0 2px 4px rgba(0,0,0,0.8), 0 8px 32px rgba(0,0,0,0.5)',
               maxWidth: '920px',
@@ -139,7 +143,7 @@ export const LandingPage: React.FC = () => {
           <h2
             className="font-heading font-semibold tracking-tight mb-6"
             style={{
-              fontSize: 'clamp(1.6rem, 3.5vw, 2.8rem)',
+              fontSize: 'clamp(1.4rem, 3vw, 2.2rem)',
               color: 'rgba(255,255,255,0.92)',
               textShadow: '0 2px 12px rgba(0,0,0,0.5)',
               maxWidth: '800px',
@@ -218,7 +222,7 @@ export const LandingPage: React.FC = () => {
                 <p className="font-mono-data text-[10px] uppercase tracking-wider mb-2" style={{ color: 'rgba(255,255,255,0.55)' }}>
                   {stat.label}
                 </p>
-                <p className="font-heading text-2xl font-bold text-white">{stat.value}</p>
+                <p className="font-heading text-xl font-bold text-white">{stat.value}</p>
                 <p className="font-mono-data text-[11px] mt-1" style={{ color: 'rgba(255,255,255,0.55)' }}>{stat.sub}</p>
               </div>
             ))}
