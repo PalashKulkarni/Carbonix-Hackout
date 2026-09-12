@@ -8,8 +8,19 @@ from uuid import uuid4
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
-from engine.carbon import calculate_emissions
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
+try:
+    from engine.carbon import calculate_emissions
+    from ml.model_b.service import ModelBService
+except ModuleNotFoundError:
+    from backend.engine.carbon import calculate_emissions
+    from backend.ml.model_b.service import ModelBService
 from app.models import EmissionFactor, EmissionResult, Recommendation, Supplier
+from app.engine_adapter import factor_registry, supplier_activity
 
 
 def factor_map(database: Session) -> dict[tuple[str, str], float]:
@@ -78,12 +89,24 @@ def candidate(supplier: Supplier, factors: dict[tuple[str, str], float], action_
 
 def refresh_recommendations(database: Session, period: str = "2025") -> None:
     database.execute(delete(Recommendation))
-    factors = factor_map(database)
     suppliers = database.scalars(select(Supplier)).all()
+    model_b = ModelBService(registry=factor_registry(database))
     for supplier in suppliers:
-        options = [candidate(supplier, factors, action) for action in ("recycled_material", "renewable_energy", "modal_shift")]
-        for option in sorted((item for item in options if item), key=lambda item: item["delta_co2e_kg"], reverse=True):
-            database.add(Recommendation(**option))
+        activity_input = supplier_activity(supplier)
+        recommendations = model_b.get_recommendations_for_supplier(activity_input, period)
+        for recommendation in recommendations:
+            database.add(Recommendation(
+                recommendation_id=recommendation.recommendation_id,
+                org_id=recommendation.org_id,
+                supplier_id=recommendation.supplier_id,
+                action_type=getattr(recommendation.action_type, "value", recommendation.action_type),
+                title=recommendation.title,
+                description=recommendation.description,
+                current_co2e_kg=recommendation.current_co2e_kg,
+                projected_co2e_kg=recommendation.projected_co2e_kg,
+                delta_co2e_kg=recommendation.delta_co2e_kg,
+                status=getattr(recommendation.status, "value", recommendation.status),
+            ))
 
 
 def recommendation_dict(recommendation: Recommendation) -> dict[str, Any]:

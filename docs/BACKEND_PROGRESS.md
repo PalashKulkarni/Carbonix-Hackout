@@ -25,6 +25,10 @@ The backend is a FastAPI application with SQLAlchemy persistence and a pure Pyth
 - Alembic configuration and initial schema migration
 - Automatic local schema creation and demo seeding
 - Shared fixture loader
+- SQLAlchemy-to-modular-engine adapter for live application calculations
+- Import compatibility for launching from the repository root or `backend/`
+- Reproducible ML test dependencies and sklearn artifact version pin
+- Local SQLite databases ignored by git
 
 ### Carbon Engine
 
@@ -70,7 +74,15 @@ The backend is a FastAPI application with SQLAlchemy persistence and a pure Pyth
 - Added `PATCH /recommendations/{recommendation_id}` for status updates
 - Recommendations refresh after supplier, CSV, demo, and factor changes
 
-Model B can later replace the rule-based ordering/candidate scorer inside `recommendations.py`; the frontend API and stored response shape should remain unchanged.
+Model B is now connected to recommendation refresh. It receives database-backed supplier activity and factors, simulates candidates through the modular engine, ranks them, and persists the existing API shape.
+
+### Model A Integration
+
+- Added `backend/app/model_a_adapter.py` with same-organization peer isolation.
+- Model A runs during supplier create, supplier update, and CSV upload.
+- Filled activity is persisted before official engine calculation.
+- Sparse records receive `data_source=modeled`; partial fills receive `data_source=mixed`.
+- Persisted numeric activity fields are returned as JSON numbers.
 
 ### Read Endpoints
 
@@ -97,7 +109,9 @@ Run from `backend/` using the configured Anaconda interpreter:
 /opt/anaconda3/bin/python -m pytest -q
 ```
 
-Current result: **10 passed**.
+Current local app result: **16 passed**.
+
+After ML integration, the combined backend and ML suite passes: **71 passed**. Model B emits sklearn version warnings when loading `backend/ml/model_b/artifacts/ranker_model.joblib`; those warnings do not currently fail tests.
 
 Compile backend files with:
 
@@ -118,8 +132,15 @@ Use `DATABASE_URL` to target PostgreSQL or another database. The current develop
 ### Highest priority
 
 1. Use Alembic migrations as the standard shared/deployment schema path.
-2. Connect Model B to rank the generated candidates.
-3. Implement scenario simulation using the same carbon engine.
+2. Implement scenario simulation using the modular engine.
+
+### Pulled ML Work
+
+- Model A is implemented in `backend/ml/model_a/` with peer-group gap filling, provenance, confidence, and `data_source` handling.
+- Model B is implemented in `backend/ml/model_b/` with candidate generation, engine simulation, optional trained ranker loading, and deterministic fallback ordering.
+- ML tests cover the new modular engine and both model services.
+- Model B is connected through `backend/app/recommendations.py` and receives SQLAlchemy suppliers/factors through the app adapter.
+- Model A is connected to live ingest and remains internal; the frontend still calls only documented FastAPI routes.
 
 ### P1
 

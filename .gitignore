@@ -1,0 +1,29 @@
+# Local Python environments and validation tooling
+.venv/
+venv/
+env/
+.tools/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+__pycache__/
+*.py[cod]
+
+# Local configuration, reports, logs, and build output
+.env
+.env.*
+.coverage
+coverage.xml
+htmlcov/
+*.log
+*.db
+*.sqlite
+*.sqlite3
+dist/
+build/
+node_modules/
+
+# Experimental ML training inputs and artifacts
+backend/ml/model_a/data/
+backend/ml/model_a/artifacts/
+backend/ml/model_b/data/

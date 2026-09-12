@@ -53,6 +53,11 @@ def factor_map(database: Session) -> dict[tuple[str, str], float]:
 
 def supplier_dict(supplier: Supplier, result: EmissionResult | None) -> dict[str, Any]:
     data = {key: getattr(supplier, key) for key in SUPPLIER_FIELDS}
+    for key in (
+        "material_quantity_kg", "energy_kwh", "transport_distance_km",
+        "latitude", "longitude", "production_volume",
+    ):
+        data[key] = float(data[key])
     if result:
         data.update({
             "energy_co2e_kg": float(result.energy_co2e_kg),

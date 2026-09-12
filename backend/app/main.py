@@ -1,7 +1,11 @@
 import csv
 import io
+import sys
+from pathlib import Path
 from typing import Any, Literal
 from uuid import uuid4
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from fastapi import Depends, FastAPI, File, Query, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
@@ -9,10 +13,15 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
+try:
+    from engine import SupplierActivityInput
+except ModuleNotFoundError:
+    from backend.engine import SupplierActivityInput
 from app.data import load_fixture
 from app.db import Base, SessionLocal, engine, get_db
 from app.models import EmissionFactor, EmissionResult, Recommendation, Supplier
 from app.engine_adapter import calculate_and_rank
+from app.model_a_adapter import fill_activity
 from app.repository import (
     ORG_ID,
     all_supplier_dicts,
@@ -174,6 +183,61 @@ def validate_supplier_parent(database: Session, tier: int, parent_id: str | None
     return None
 
 
+def supplier_input_from_request(
+    request: SupplierCreateRequest,
+    supplier_id: str,
+) -> SupplierActivityInput:
+    return SupplierActivityInput(
+        supplier_id=supplier_id,
+        org_id=ORG_ID,
+        parent_id=request.parent_id,
+        name=request.name,
+        tier=request.tier,
+        material_code=request.material_code,
+        material_quantity_kg=request.material_quantity_kg,
+        energy_kwh=request.energy_kwh,
+        electricity_source=request.electricity_source,
+        transport_distance_km=request.transport_distance_km,
+        transport_mode=request.transport_mode,
+        location_label=request.location_label,
+        latitude=request.latitude,
+        longitude=request.longitude,
+        production_volume=request.production_volume,
+        production_unit=request.production_unit,
+        data_source="primary",
+    )
+
+
+def supplier_input_from_model(supplier: Supplier) -> SupplierActivityInput:
+    return SupplierActivityInput(
+        supplier_id=supplier.supplier_id,
+        org_id=supplier.org_id,
+        parent_id=supplier.parent_id,
+        name=supplier.name,
+        tier=supplier.tier,
+        material_code=supplier.material_code,
+        material_quantity_kg=float(supplier.material_quantity_kg),
+        energy_kwh=float(supplier.energy_kwh),
+        electricity_source=supplier.electricity_source,
+        transport_distance_km=float(supplier.transport_distance_km),
+        transport_mode=supplier.transport_mode,
+        location_label=supplier.location_label,
+        latitude=float(supplier.latitude),
+        longitude=float(supplier.longitude),
+        production_volume=float(supplier.production_volume),
+        production_unit=supplier.production_unit,
+        data_source=supplier.data_source,
+    )
+
+
+def apply_completed_activity(supplier: Supplier, activity: SupplierActivityInput) -> None:
+    for field in (
+        "material_quantity_kg", "energy_kwh", "electricity_source", "transport_distance_km",
+        "transport_mode", "production_volume", "production_unit", "data_source",
+    ):
+        setattr(supplier, field, getattr(activity, field))
+
+
 @app.get("/suppliers")
 def list_suppliers(
     period: str = Query("2025"),
@@ -229,12 +293,23 @@ def create_supplier(
     parent_error = validate_supplier_parent(database, request.tier, request.parent_id)
     if parent_error:
         return parent_error
-    supplier = Supplier(
-        supplier_id=f"sup_{uuid4().hex[:12]}",
-        org_id=ORG_ID,
-        data_source="primary",
-        **request.model_dump(),
+    supplier_id = f"sup_{uuid4().hex[:12]}"
+    completed_activity = fill_activity(
+        database,
+        supplier_input_from_request(request, supplier_id),
     )
+    supplier = Supplier(
+        supplier_id=supplier_id,
+        org_id=ORG_ID,
+        parent_id=request.parent_id,
+        name=request.name,
+        tier=request.tier,
+        material_code=request.material_code,
+        location_label=request.location_label,
+        latitude=request.latitude,
+        longitude=request.longitude,
+    )
+    apply_completed_activity(supplier, completed_activity)
     database.add(supplier)
     database.flush()
     calculate_and_rank(database, "2025")
@@ -261,7 +336,8 @@ def update_supplier(
         return parent_error
     for key, value in changes.items():
         setattr(supplier, key, value)
-    supplier.data_source = "primary"
+    completed_activity = fill_activity(database, supplier_input_from_model(supplier))
+    apply_completed_activity(supplier, completed_activity)
     database.flush()
     calculate_and_rank(database, "2025")
     refresh_recommendations(database, "2025")
@@ -315,15 +391,27 @@ async def upload_suppliers(
                 for key, value in request.model_dump(exclude={"parent_id"}).items():
                     setattr(existing, key, value)
                 existing.parent_id = request.parent_id
-                existing.data_source = "primary"
+                completed_activity = fill_activity(database, supplier_input_from_model(existing))
+                apply_completed_activity(existing, completed_activity)
                 updated += 1
             else:
-                existing = Supplier(
-                    supplier_id=f"sup_{uuid4().hex[:12]}",
-                    org_id=ORG_ID,
-                    data_source="primary",
-                    **request.model_dump(),
+                supplier_id = f"sup_{uuid4().hex[:12]}"
+                completed_activity = fill_activity(
+                    database,
+                    supplier_input_from_request(request, supplier_id),
                 )
+                existing = Supplier(
+                    supplier_id=supplier_id,
+                    org_id=ORG_ID,
+                    parent_id=request.parent_id,
+                    name=request.name,
+                    tier=request.tier,
+                    material_code=request.material_code,
+                    location_label=request.location_label,
+                    latitude=request.latitude,
+                    longitude=request.longitude,
+                )
+                apply_completed_activity(existing, completed_activity)
                 database.add(existing)
                 created += 1
             existing_by_name[name] = existing

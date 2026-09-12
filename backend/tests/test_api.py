@@ -64,11 +64,11 @@ def test_database_read_models_match_demo_contract():
 
 def test_dashboard_changes_after_supplier_update():
     before = client.get("/dashboard").json()["total_co2e_kg"]
-    response = client.put("/suppliers/sup_steelco", json={"energy_kwh": 0})
+    response = client.put("/suppliers/sup_steelco", json={"energy_kwh": 100})
 
     assert response.status_code == 200
     after = client.get("/dashboard").json()["total_co2e_kg"]
-    assert after == before - 41000
+    assert after == before - 40918
 
 
 def test_factor_update_recalculates_emissions():
@@ -104,17 +104,18 @@ def test_supplier_create_and_update_recalculate_emissions():
             "material_code": "steel",
             "material_quantity_kg": 1000,
             "energy_kwh": 100,
+            "transport_distance_km": 10,
+            "production_volume": 1,
             "location_label": "Delhi, India",
             "latitude": 28.6139,
             "longitude": 77.209,
-            "production_volume": 1,
         },
     )
 
     assert created.status_code == 200
     supplier = created.json()
     assert supplier["supplier_id"].startswith("sup_")
-    assert supplier["total_co2e_kg"] == 1951
+    assert supplier["total_co2e_kg"] == 1952.2
 
     updated = client.put(
         f"/suppliers/{supplier['supplier_id']}",
@@ -122,7 +123,7 @@ def test_supplier_create_and_update_recalculate_emissions():
     )
 
     assert updated.status_code == 200
-    assert updated.json()["total_co2e_kg"] == 1996
+    assert updated.json()["total_co2e_kg"] == 1997.2
 
 
 def test_supplier_create_rejects_missing_parent_for_tier_two():
@@ -140,6 +141,28 @@ def test_supplier_create_rejects_missing_parent_for_tier_two():
 
     assert response.status_code == 409
     assert response.json()["error"]["code"] == "CONFLICT"
+
+
+def test_sparse_supplier_uses_model_a_gap_fill():
+    response = client.post(
+        "/suppliers",
+        json={
+            "name": "Modeled Steel Supplier",
+            "tier": 1,
+            "material_code": "steel",
+            "location_label": "Delhi, India",
+            "latitude": 28.6139,
+            "longitude": 77.209,
+        },
+    )
+
+    assert response.status_code == 200
+    supplier = response.json()
+    assert supplier["data_source"] == "modeled"
+    assert supplier["energy_kwh"] > 0
+    assert supplier["material_quantity_kg"] > 0
+    assert supplier["transport_distance_km"] > 0
+    assert supplier["production_volume"] > 0
 
 
 def test_csv_upload_updates_demo_suppliers():
