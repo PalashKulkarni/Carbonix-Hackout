@@ -8,14 +8,14 @@
   --font-sans: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'Geist Mono', monospace;
 
-  --color-forest-primary: #1B3A2D;
+  --color-forest-primary: #1E4535;
   --color-forest-dark: #12281F;
-  --color-forest-light: #254F3E;
+  --color-forest-light: #2D6A4F;
   
-  --color-sage-secondary: #7A9B8A;
-  --color-sage-light: #EBF2EE;
+  --color-sage-secondary: #8FB3A0;
+  --color-sage-light: #E8F4EE;
   
-  --color-canvas-warm: #F7F5F0;
+  --color-canvas-warm: #EAE6DC;
   --color-canvas-card: #FFFFFF;
   
   --color-charcoal-text: #2C2C2C;
@@ -27,11 +27,11 @@
   --color-red-critical: #C45B4A;
   --color-red-bg: #FDF2F0;
   
-  --color-green-success: #2D6A4F;
-  --color-green-bg: #EEF7F2;
+  --color-green-success: #3A7A5C;
+  --color-green-bg: #E8F4EE;
   
-  --color-border-muted: #E1DFDA;
-  --color-border-strong: #C8C5BE;
+  --color-border-muted: #D8D4CC;
+  --color-border-strong: #C0BCB4;
 }
 
 :root {
@@ -44,7 +44,7 @@
 body {
   margin: 0;
   padding: 0;
-  background-color: #F7F5F0;
+  background-color: #EAE6DC;
   color: #2C2C2C;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
@@ -56,34 +56,34 @@ body {
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #F7F5F0;
+  background: #EAE6DC;
 }
 ::-webkit-scrollbar-thumb {
-  background: #C8C5BE;
+  background: #C0BCB4;
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #7A9B8A;
+  background: #8FB3A0;
 }
 
 /* Academic & Scientific Card Contour */
 .carbonix-card {
   background-color: #FFFFFF;
-  border: 1.5px solid #E1DFDA;
+  border: 1.5px solid #D8D4CC;
   border-radius: 6px;
-  box-shadow: 0 1px 3px rgba(27, 58, 45, 0.04);
+  box-shadow: 0 1px 3px rgba(30, 69, 53, 0.05);
   transition: all 0.2s ease-in-out;
 }
 
 .carbonix-card:hover {
-  border-color: #C8C5BE;
-  box-shadow: 0 4px 12px rgba(27, 58, 45, 0.08);
+  border-color: #C0BCB4;
+  box-shadow: 0 4px 12px rgba(30, 69, 53, 0.09);
 }
 
 .carbonix-card-dark {
-  background-color: #1B3A2D;
-  color: #F7F5F0;
-  border: 1.5px solid #254F3E;
+  background-color: #1E4535;
+  color: #F0EDE6;
+  border: 1.5px solid #2D6A4F;
   border-radius: 6px;
 }
 
