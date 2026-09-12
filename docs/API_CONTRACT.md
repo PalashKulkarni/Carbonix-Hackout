@@ -34,14 +34,25 @@ Response:
 }
 ```
 
+### `POST /auth/signup`
+
+Body: `{ "email": string, "password": string, "org_name": string }`
+
+Response: same shape as `/auth/demo`, with a newly created `org_id` and signed bearer token. Passwords are hashed before storage.
+
 ### `POST /auth/login`
 
-Body: `{ "email": string, "password": string }`  
-Same response shape as demo. P0 may only implement demo and return 501 for login.
+Body: `{ "email": string, "password": string }`
+
+Response: same shape as demo login. Invalid credentials return `401 UNAUTHORIZED`.
 
 ### `GET /auth/me`
 
+Requires `Authorization: Bearer <token>`.
+
 Response: `{ "org_id", "org_name", "email" }`
+
+All non-public API routes require the same bearer header. Public routes are health, demo login, signup, login, and API documentation.
 
 ---
 
@@ -176,15 +187,6 @@ Golden: `fixtures/factors.json` (`items` wrapper).
 
 Body: `{ "factor_kg_co2e_per_unit": number, "source": string, "year": number }`  
 Response: one factor. Then recalc all `emission_results`.
-
----
-
-## Trends (P2)
-
-### `GET /trends?period=&group=total|category|tier`
-
-Response: `{ "group": "total", "points": [ { "date": "2025-01-01", "value": 0, "key": "total" } ] }`  
-P0: empty `points` is OK.
 
 ---
 

@@ -7,9 +7,9 @@ from uuid import uuid4
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from fastapi import Depends, FastAPI, File, Query, UploadFile
+from fastapi import Depends, FastAPI, File, Query, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
@@ -19,7 +19,8 @@ except ModuleNotFoundError:
     from backend.engine import ScenarioInput, SupplierActivityInput, simulate_scenario as run_scenario
 from app.data import load_fixture
 from app.db import Base, SessionLocal, engine, get_db
-from app.models import EmissionFactor, EmissionResult, Recommendation, Supplier
+from app.models import EmissionFactor, EmissionResult, Org, Recommendation, Supplier, User
+from app.auth import create_token, decode_token, hash_password, verify_password
 from app.engine_adapter import calculate_and_rank, factor_registry, supplier_activity
 from app.model_a_adapter import fill_activity
 from app.repository import (
@@ -34,6 +35,7 @@ from app.repository import (
     supplier_dict,
 )
 from app.recommendations import recommendation_dict, refresh_recommendations
+from app.reporting import build_esg_pdf
 
 Base.metadata.create_all(bind=engine)
 with SessionLocal() as startup_database:
@@ -49,6 +51,17 @@ app.add_middleware(
 )
 
 
+@app.middleware("http")
+async def require_auth(request, call_next):
+    public_paths = {"/health", "/auth/demo", "/auth/login", "/auth/signup", "/docs", "/openapi.json", "/redoc"}
+    if request.method == "OPTIONS" or request.url.path in public_paths or request.url.path.startswith("/docs/"):
+        return await call_next(request)
+    authorization = request.headers.get("Authorization", "")
+    if not authorization.startswith("Bearer ") or decode_token(authorization[7:]) is None:
+        return JSONResponse(status_code=401, content={"error": {"code": "UNAUTHORIZED", "message": "A valid bearer token is required", "details": []}})
+    return await call_next(request)
+
+
 class DemoAuthResponse(BaseModel):
     token: str
     org_id: str
@@ -60,6 +73,17 @@ class AuthMeResponse(BaseModel):
     org_id: str
     org_name: str
     email: str
+
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str = Field(min_length=8)
+
+
+class SignupRequest(BaseModel):
+    email: str
+    password: str = Field(min_length=8)
+    org_name: str = Field(min_length=1, max_length=160)
 
 
 class SupplierCreateRequest(BaseModel):
@@ -107,6 +131,11 @@ class ScenarioSimulationRequest(BaseModel):
     recycled_material_pct: float = Field(default=0, ge=0, le=100)
     renewable_energy_pct: float = Field(default=0, ge=0, le=100)
     rail_transport_pct: float = Field(default=0, ge=0, le=100)
+
+
+class ReportRequest(BaseModel):
+    period: str = "2025"
+    scenario_id: str | None = None
 
 
 class RecommendationStatusUpdate(BaseModel):
@@ -168,9 +197,37 @@ def demo_login() -> DemoAuthResponse:
     return DemoAuthResponse(token="demo-token-apex", **DEMO_USER.model_dump())
 
 
+@app.post("/auth/signup", response_model=DemoAuthResponse, status_code=201)
+def signup(request: SignupRequest, database: Session = Depends(get_db)) -> Any:
+    email = request.email.lower()
+    if database.query(User).filter(User.email == email).first():
+        return conflict("An account with this email already exists")
+    org_id = f"org_{uuid4().hex[:12]}"
+    user_id = f"usr_{uuid4().hex[:12]}"
+    database.add(Org(org_id=org_id, name=request.org_name))
+    database.add(User(user_id=user_id, org_id=org_id, email=email, password_hash=hash_password(request.password), is_demo=False))
+    database.commit()
+    return DemoAuthResponse(token=create_token(user_id, org_id, email), org_id=org_id, org_name=request.org_name, email=email)
+
+
+@app.post("/auth/login", response_model=DemoAuthResponse)
+def login(request: LoginRequest, database: Session = Depends(get_db)) -> Any:
+    user = database.query(User).filter(User.email == request.email.lower()).first()
+    if user is None or not verify_password(request.password, user.password_hash):
+        return JSONResponse(status_code=401, content={"error": {"code": "UNAUTHORIZED", "message": "Invalid email or password", "details": []}})
+    organization = database.get(Org, user.org_id)
+    return DemoAuthResponse(token=create_token(user.user_id, user.org_id, user.email), org_id=user.org_id, org_name=organization.name if organization else "", email=user.email)
+
+
 @app.get("/auth/me", response_model=AuthMeResponse)
-def auth_me() -> AuthMeResponse:
-    return DEMO_USER
+def auth_me(request: Request) -> Any:
+    authorization = request.headers.get("Authorization", "")
+    payload = decode_token(authorization[7:]) if authorization.startswith("Bearer ") else None
+    if payload is None:
+        return JSONResponse(status_code=401, content={"error": {"code": "UNAUTHORIZED", "message": "A valid bearer token is required", "details": []}})
+    with SessionLocal() as database:
+        organization = database.get(Org, payload["org_id"])
+    return AuthMeResponse(org_id=payload["org_id"], org_name=organization.name if organization else "", email=payload["email"])
 
 
 def not_found(message: str) -> JSONResponse:
@@ -478,6 +535,21 @@ def simulate_scenario_endpoint(
         registry=factor_registry(database),
     )
     return result.model_dump()
+
+
+@app.post("/reports/esg")
+def generate_esg_report(
+    request: ReportRequest,
+    database: Session = Depends(get_db),
+) -> Response:
+    report = build_esg_pdf(dashboard(database, request.period))
+    return Response(
+        content=report,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f'attachment; filename="Carbonix_ESG_Report_{request.period}.pdf"',
+        },
+    )
 
 
 def factor_dict(factor: EmissionFactor) -> dict[str, Any]:

@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Leaf, Lock, Mail, ArrowRight, ShieldAlert } from 'lucide-react';
+import { Building2, Leaf, Lock, Mail, ArrowRight, ShieldAlert } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { api } from '../services/api';
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState('demo@apex.example');
-  const [password, setPassword] = useState('••••••••••••');
+  const [password, setPassword] = useState('');
+  const [orgName, setOrgName] = useState('');
+  const [isSignup, setIsSignup] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -26,7 +28,15 @@ export const LoginPage: React.FC = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    handleDemoLogin();
+    setLoading(true);
+    setError('');
+    const action = isSignup
+      ? api.signup(email, password, orgName)
+      : api.login(email, password);
+    action
+      .then(() => navigate('/app'))
+      .catch(() => setError(isSignup ? 'Unable to create account. Check your details and try again.' : 'Invalid email or password.'))
+      .finally(() => setLoading(false));
   };
 
   return (
@@ -55,6 +65,25 @@ export const LoginPage: React.FC = () => {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
+            {isSignup && (
+              <div>
+                <label className="block text-xs font-mono-data uppercase font-semibold text-stone-600 mb-1">
+                  Organization Name
+                </label>
+                <div className="relative">
+                  <Building2 className="w-4 h-4 text-stone-400 absolute left-3 top-3" />
+                  <input
+                    type="text"
+                    value={orgName}
+                    onChange={(e) => setOrgName(e.target.value)}
+                    placeholder="Your organization"
+                    className="w-full pl-9 pr-3 py-2 text-sm border border-[#E1DFDA] rounded-md focus:outline-none focus:border-[#1B3A2D] bg-[#F7F5F0]/30"
+                    required
+                  />
+                </div>
+              </div>
+            )}
+
             <div>
               <label className="block text-xs font-mono-data uppercase font-semibold text-stone-600 mb-1">
                 Corporate Email
@@ -94,10 +123,21 @@ export const LoginPage: React.FC = () => {
                 size="md"
                 className="w-full justify-center text-stone-600"
               >
-                Sign In With Credentials
+                {isSignup ? 'Create Account' : 'Sign In With Credentials'}
               </Button>
             </div>
           </form>
+
+          <button
+            type="button"
+            onClick={() => {
+              setIsSignup((current) => !current);
+              setError('');
+            }}
+            className="w-full mt-4 text-xs font-mono-data text-[#1B3A2D] hover:underline"
+          >
+            {isSignup ? 'Already have an account? Sign in' : 'Need an account? Create one'}
+          </button>
 
           {/* Quick Demo Access Divider */}
           <div className="relative my-6">

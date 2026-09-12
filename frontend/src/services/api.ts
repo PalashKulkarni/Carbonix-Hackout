@@ -23,13 +23,20 @@ import {
 
 const API_BASE_URL = 'http://localhost:8000';
 
+function getStoredToken(): string {
+  return typeof sessionStorage !== 'undefined'
+    ? sessionStorage.getItem('carbonix_token') || 'demo-token-apex'
+    : 'demo-token-apex';
+}
+
 async function fetchWithFallback<T>(url: string, options: RequestInit = {}, fallbackData: T): Promise<T> {
   try {
+    const token = getStoredToken();
     const response = await fetch(`${API_BASE_URL}${url}`, {
       ...options,
       headers: {
         'Content-Type': 'application/json',
-        Authorization: 'Bearer demo-token-apex',
+        Authorization: `Bearer ${token}`,
         ...(options.headers || {}),
       },
     });
@@ -49,12 +56,45 @@ async function fetchWithFallback<T>(url: string, options: RequestInit = {}, fall
 export const api = {
   // Auth
   demoLogin: async (): Promise<AuthResponse> => {
-    return fetchWithFallback<AuthResponse>('/auth/demo', { method: 'POST', body: JSON.stringify({}) }, {
+    const response = await fetchWithFallback<AuthResponse>('/auth/demo', { method: 'POST', body: JSON.stringify({}) }, {
       token: 'demo-token-apex',
       org_id: 'org_apex',
       org_name: 'Apex Manufacturing',
       email: 'demo@apex.example',
     });
+    sessionStorage.setItem('carbonix_token', response.token);
+    return response;
+  },
+
+  login: async (email: string, password: string): Promise<AuthResponse> => {
+    const response = await fetchWithFallback<AuthResponse>('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, password }),
+    }, {
+      token: '',
+      org_id: '',
+      org_name: '',
+      email,
+    });
+    if (!response.token) {
+      throw new Error('Invalid email or password');
+    }
+    sessionStorage.setItem('carbonix_token', response.token);
+    return response;
+  },
+
+  signup: async (email: string, password: string, orgName: string): Promise<AuthResponse> => {
+    const response = await fetch(`${API_BASE_URL}/auth/signup`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password, org_name: orgName }),
+    });
+    if (!response.ok) {
+      throw new Error('Unable to create account');
+    }
+    const data = await response.json() as AuthResponse;
+    sessionStorage.setItem('carbonix_token', data.token);
+    return data;
   },
 
   getAuthMe: async (): Promise<{ org_id: string; org_name: string; email: string }> => {
@@ -132,7 +172,7 @@ export const api = {
       formData.append('file', file);
       const response = await fetch(`${API_BASE_URL}/suppliers/upload`, {
         method: 'POST',
-        headers: { Authorization: 'Bearer demo-token-apex' },
+        headers: { Authorization: `Bearer ${getStoredToken()}` },
         body: formData,
       });
       if (response.ok) {
@@ -222,5 +262,20 @@ export const api = {
       method: 'PUT',
       body: JSON.stringify(payload),
     }, fallback);
+  },
+
+  generateEsgReport: async (period = '2025'): Promise<Blob> => {
+    const response = await fetch(`${API_BASE_URL}/reports/esg`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${getStoredToken()}`,
+      },
+      body: JSON.stringify({ period, scenario_id: null }),
+    });
+    if (!response.ok) {
+      throw new Error(`Report generation failed: ${response.status}`);
+    }
+    return response.blob();
   }
 };

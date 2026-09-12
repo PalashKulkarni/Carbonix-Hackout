@@ -5,7 +5,7 @@ import pytest
 
 from app.main import app
 
-client = TestClient(app)
+client = TestClient(app, headers={"Authorization": "Bearer demo-token-apex"})
 
 
 @pytest.fixture(autouse=True)
@@ -23,6 +23,31 @@ def test_demo_login_matches_contract():
         "org_name": "Apex Manufacturing",
         "email": "demo@apex.example",
     }
+
+
+def test_protected_routes_require_bearer_token():
+    response = TestClient(app).get("/suppliers")
+
+    assert response.status_code == 401
+    assert response.json()["error"]["code"] == "UNAUTHORIZED"
+
+
+def test_signup_login_and_me_round_trip():
+    email = "auth-test@example.com"
+    signup = TestClient(app).post(
+        "/auth/signup",
+        json={"email": email, "password": "correct-horse", "org_name": "Auth Test Org"},
+    )
+    assert signup.status_code == 201
+    token = signup.json()["token"]
+    login = TestClient(app).post(
+        "/auth/login",
+        json={"email": email, "password": "correct-horse"},
+    )
+    assert login.status_code == 200
+    me = TestClient(app, headers={"Authorization": f"Bearer {token}"}).get("/auth/me")
+    assert me.status_code == 200
+    assert me.json()["email"] == email
 
 
 def test_suppliers_returns_fixture_shape():
@@ -90,6 +115,15 @@ def test_scenario_simulation_matches_golden_fixture():
     assert payload["delta_co2e_kg"] == pytest.approx(102936.05)
     assert payload["delta_pct"] == pytest.approx(36.06)
     assert len(payload["by_category"]) == 5
+
+
+def test_esg_report_returns_live_pdf():
+    response = client.post("/reports/esg", json={"period": "2025", "scenario_id": None})
+
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith("application/pdf")
+    assert response.content.startswith(b"%PDF")
+    assert "Carbonix_ESG_Report_2025.pdf" in response.headers["content-disposition"]
 
 
 def test_dashboard_changes_after_supplier_update():

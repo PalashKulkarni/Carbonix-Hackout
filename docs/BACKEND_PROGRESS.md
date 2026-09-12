@@ -27,8 +27,10 @@ The backend is a FastAPI application with SQLAlchemy persistence and a pure Pyth
 - Shared fixture loader
 - SQLAlchemy-to-modular-engine adapter for live application calculations
 - Import compatibility for launching from the repository root or `backend/`
+- Signed bearer authentication with signup, login, and protected API routes
 - Database-backed scenario simulation through the modular engine
 - Database-backed dashboard recommendation teaser
+- Live ESG PDF report generation from dashboard data
 - Reproducible ML test dependencies and sklearn artifact version pin
 - Local SQLite databases ignored by git
 
@@ -115,6 +117,20 @@ Dashboard recommendations are now live:
 - `top_recommendations` comes from the three highest persisted recommendation deltas.
 - Dashboard teaser and recommendations inbox use the same database records.
 
+Reports are now live:
+
+- `POST /reports/esg` returns a real PDF attachment.
+- PDF summary and category sections are generated from current dashboard data.
+- Frontend report preview uses live dashboard values and downloads the returned PDF blob.
+
+Authentication is now live:
+
+- `POST /auth/signup` creates an organization and hashed-password user.
+- `POST /auth/login` verifies credentials and returns a signed expiring bearer token.
+- `GET /auth/me` reads the authenticated token identity.
+- Non-public API routes reject missing or invalid bearer tokens with `401 UNAUTHORIZED`.
+- Demo login and the documented demo token remain available for v1 development.
+
 ## Validation
 
 Run from `backend/` using the configured Anaconda interpreter:
@@ -125,7 +141,7 @@ Run from `backend/` using the configured Anaconda interpreter:
 
 Current local app result: **17 passed**.
 
-After scenario integration, the combined backend and ML suite passes: **72 passed**. Model B emits sklearn version warnings when loading `backend/ml/model_b/artifacts/ranker_model.joblib`; those warnings do not currently fail tests.
+After auth, report, and scenario integration, the combined backend and ML suite passes: **76 passed**. Model B emits sklearn version warnings when loading `backend/ml/model_b/artifacts/ranker_model.joblib`; those warnings do not currently fail tests.
 
 Compile backend files with:
 
@@ -146,7 +162,7 @@ Use `DATABASE_URL` to target PostgreSQL or another database. The current develop
 ### Highest priority
 
 1. Use Alembic migrations as the standard shared/deployment schema path.
-2. Implement reports when the P2 page is prioritized.
+2. Add organization-level query scoping and production secret management before deployment.
 
 ### Pulled ML Work
 
@@ -156,17 +172,13 @@ Use `DATABASE_URL` to target PostgreSQL or another database. The current develop
 - Model B is connected through `backend/app/recommendations.py` and receives SQLAlchemy suppliers/factors through the app adapter.
 - Model A is connected to live ingest and remains internal; the frontend still calls only documented FastAPI routes.
 
-### P1
+### Remaining Product Work
 
-- Recommendations models and endpoints
-- Model B integration with engine-calculated `delta_co2e_kg`
-- Scenario simulation using the same engine
-
-### P2
-
-- Trends and emission snapshots
-- ESG report generation
-- Chat endpoint using only existing GET endpoints as tools
+- Add frontend signup UI and `api.signup()` to match the already-working backend signup endpoint.
+- Add organization-level query scoping.
+- Add logout/token revocation and production secret management.
+- Make frontend API failures visible instead of silently using mock fallbacks.
+- Add the chatbot only if the team brings P2 scope back.
 
 ## Team Rules
 
