@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Building2, Lock, Mail, ArrowRight, ShieldAlert, ShieldCheck } from 'lucide-react';
 import { api } from '../services/api';
 
@@ -106,10 +106,11 @@ const AuthLogoMark: React.FC = () => (
 ═══════════════════════════════════════════════════════════════════ */
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [email, setEmail]       = useState('demo@apex.example');
   const [password, setPassword] = useState('');
   const [orgName, setOrgName]   = useState('');
-  const [isSignup, setIsSignup]                 = useState(false);
+  const [isSignup, setIsSignup]                 = useState(() => searchParams.get('mode') === 'signup');
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [loading, setLoading]   = useState(false);
   const [error, setError]       = useState('');
@@ -156,6 +157,18 @@ export const LoginPage: React.FC = () => {
     <AuthBg>
       {/* ── Header ── */}
       <div className="text-center mb-7">
+        <button
+          type="button"
+          onClick={() => navigate('/')}
+          style={{
+            marginBottom: '14px', background: 'none', border: 'none', padding: 0,
+            color: 'rgba(255,255,255,0.72)', fontSize: '12px', cursor: 'pointer',
+          }}
+          onMouseEnter={e => (e.currentTarget.style.color = '#fff')}
+          onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.72)')}
+        >
+          ← Back to Carbonix home
+        </button>
         <div className="flex justify-center mb-3">
           <AuthLogoMark />
         </div>

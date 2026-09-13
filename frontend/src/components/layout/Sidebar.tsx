@@ -36,7 +36,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onLogout }) => {
   return (
     <aside className="w-64 text-[#F7F5F0] min-h-screen flex flex-col shrink-0 select-none" style={{ background: 'linear-gradient(170deg, #254F3E 0%, #1B3A2D 60%, #163325 100%)', borderRight: '1px solid #1E4535' }}>
       {/* Brand Header */}
-      <div className="p-6 border-b border-[#254F3E]/60 flex items-center space-x-3">
+      <NavLink to="/" className="p-6 border-b border-[#254F3E]/60 flex items-center space-x-3 hover:bg-[#254F3E]/35 transition-colors" title="Back to Carbonix home">
         <div className="w-9 h-9 flex items-center justify-center">
           <svg width="36" height="36" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M 64,32 C 72,34 78,41 78,50 C 78,59 72,66 64,68" stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none" opacity="0.55" />
@@ -62,7 +62,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onLogout }) => {
             Supply Chain Intel v2.4
           </p>
         </div>
-      </div>
+      </NavLink>
 
       {/* Scrollable Main Area */}
       <div className="flex-1 overflow-y-auto flex flex-col">

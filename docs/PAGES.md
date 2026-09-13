@@ -7,7 +7,7 @@ Frontend **must** use these React Router paths. Sidebar labels in quotes.
 | Path | Page | Contains |
 |---|---|---|
 | `/` | Landing | Hero, Scope 3 problem, ingest→calc→hotspots→recs, feature grid, CTA to `/login` |
-| `/login` | Login | Email/password, account creation, password-reset request, **Demo login** button → `POST /auth/demo` → `/app` |
+| `/login` | Login | Email/password, account creation (`/login?mode=signup`), password-reset request, a landing-page link, and **Demo login** → `POST /auth/demo` → `/app` |
 | `/reset-password?token=` | Password reset | Validates a one-time emailed token and sets a new password via `POST /auth/reset-password` |
 
 ## App shell
