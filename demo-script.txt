@@ -1,0 +1,66 @@
+# Demo Script: Carbonix - Carbon-Aware Supply Chain Dashboard
+
+**Project One-Liner:** Carbonix is a multi-tier Scope 3 emissions dashboard that ingests supplier activity, deterministically calculates an auditable carbon footprint, and uses ML to rank circular sourcing alternatives.
+
+## Demo Setup
+**What needs to be running:**
+1. **Backend:** FastAPI must be running on port 8000.
+   ```bash
+   cd backend
+   python -m pip install -e ".[ml,test]"
+   alembic upgrade head
+   python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+   ```
+2. **Frontend:** Vite must be running on port 5173.
+   ```bash
+   cd frontend
+   npm ci
+   npm run dev
+   ```
+3. **Browser:** Open `http://localhost:5173`.
+4. **Environment Variables:** `GROQ_API_KEY` is optional for the chatbot. If omitted, the chatbot uses explicit template matching.
+5. **Initial State:** The backend automatically creates and seeds a local SQLite database (`backend/carbon_aware.db`) on first startup.
+
+## Pre-Flight Checklist
+- [ ] API is healthy: `curl http://127.0.0.1:8000/health` returns `{"status": "ok"}`
+- [ ] Frontend loads at `http://localhost:5173`
+- [ ] Database is seeded (Demo data loaded on startup or via `POST /suppliers/demo`)
+- [ ] Test CSV file is ready for upload (you can use `fixtures/suppliers.csv` if available)
+
+## Demo Script (Target: ~4 Minutes)
+
+| # | Time | Do | Say | Audience sees |
+| - | ---: | --- | --- | ------------- |
+| 1 | 0:00 | **Click "Demo Login"** on the Landing Page. | "Companies today struggle to track Scope 3 emissions across their entire supply chain. Our solution, Carbonix, provides instant, multi-tier visibility." | The Executive Dashboard showing total CO2e footprint, breakdown by category, and top hotspots. |
+| 2 | 0:30 | **Navigate to "Hierarchy"** in the sidebar. | "Supply chains aren't flat. Carbonix maps relationships from Tier 1 down to Tier 3, letting you instantly spot deep-tier risks that traditional reporting misses." | A tree/network diagram mapping the organization down through its multi-tier suppliers. |
+| 3 | 1:00 | **Navigate to "Suppliers" -> Click "Upload CSV"** and select a file with missing energy data. | "Suppliers rarely provide perfect data. When we ingest activity logs, our Model A automatically detects missing values—like a Tier 2 supplier's energy usage—and intelligently gap-fills it based on peer averages." | The supplier list updates. The new records show a `modeled` data source flag, proving the ML gap-fill worked. |
+| 4 | 1:30 | **Navigate to "Map"**. | "To ensure auditability, the official emissions are always calculated by a deterministic, pure-Python engine—never hallucinated by an LLM. Here, we plot these calculated hotspots geographically." | A MapLibre geographic heatmap with node sizes proportional to their computed carbon emissions. |
+| 5 | 2:15 | **Navigate to "Recommendations"**. | "Knowing your footprint is just the start. Our Model B generates circular sourcing alternatives—like switching to rail transport or renewable energy. It simulates each candidate through the exact same calculation engine, and then an ML ranker sorts them by impact and feasibility." | A ranked list of actionable recommendations (e.g., "Switch to Rail", "Virgin to Recycled"), each showing an exact `delta_co2e_kg` reduction. |
+| 6 | 3:00 | **Navigate to "Scenarios"**. Drag the "Renewable Energy %" slider to the right. | "You can interactively model these interventions. If we push our network to 50% renewable energy, you can instantly see the projected Scope 3 reduction." | The total projected CO2e drops in real-time on the chart as the slider moves. |
+| 7 | 3:30 | **Navigate to "Reports"**. Click "Download ESG Report". | "Finally, all of this is exportable as a COP28-compliant PDF audit statement, ready for regulatory disclosure." | A generated PDF downloads to the browser, proving the data is accessible and exportable. |
+
+## "If Something Breaks" (Failure Recovery)
+
+**1. The dashboard charts are empty or showing zeros.**
+*   **What you see:** No data on the Dashboard or Map.
+*   **Cause:** The demo database might have been cleared or not seeded.
+*   **Recovery:** Navigate to "Suppliers" and click the "Load Demo Data" button (if available in UI), or restart the backend server which seeds the database on startup.
+*   **What to say:** "Let me just initialize our simulation dataset so we have a realistic supply chain to look at."
+
+**2. The frontend data isn't changing when I make an update.**
+*   **What you see:** Stale data, but no visible errors.
+*   **Cause:** The backend might have crashed. The frontend has a built-in mock fallback (`frontend/src/fixtures/mockData.ts`) that silently takes over when API calls fail.
+*   **Recovery:** Check the backend terminal for tracebacks. Restart the backend. Refresh the frontend page.
+*   **What to say:** "Our UI is designed with robust offline fallbacks, but let me quickly reconnect it to our live engine to show the real-time calculations."
+
+**3. "Chatbot" gives generic answers or errors.**
+*   **What you see:** Chat responds with "I can answer questions using the current supplier inventory only."
+*   **Cause:** The `GROQ_API_KEY` is missing, so it's using the hardcoded template matching instead of the LLM for phrasing.
+*   **Recovery:** This is actually expected behavior without the API key. Keep your questions strictly to the allowed templates (e.g., "hotspots", "total emissions").
+*   **What to say:** "For security and auditability, our chatbot is strictly grounded in the database engine. It refuses to answer questions outside of the exact calculated inventory."
+
+**4. A CSV upload fails.**
+*   **What you see:** A validation error toast.
+*   **Cause:** The CSV headers don't match the strict `CSV_HEADERS` contract (e.g., missing `material_code`).
+*   **Recovery:** Use the exact `fixtures/suppliers.csv` provided in the repo.
+*   **What to say:** "Our ingestion layer is strict by design. It rejects malformed data to ensure the carbon calculations remain auditable and compliant."

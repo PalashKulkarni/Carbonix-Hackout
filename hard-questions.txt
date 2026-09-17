@@ -1,0 +1,57 @@
+# Hard Questions Prep: Carbonix
+
+**"Why did you choose this architecture? Why use a pure Python engine instead of an ML model for the total carbon score?"**
+We deliberately separated the calculation engine from the ML models. Scope 3 emissions reporting requires auditability and compliance. If an ESG auditor asks how a number was generated, we need to point to a deterministic formula (Activity × Emission Factor), not a black-box neural net. We only use ML where uncertainty is acceptable: gap-filling missing activity data (Model A) and ranking hypothetical future actions (Model B).
+**Code basis:** `backend/engine/calculator.py`
+**What we can safely claim:** The official emission footprint is fully deterministic, auditable, and traceable.
+**Limitation:** The calculation is only as accurate as the input activity data and emission factors.
+
+**"How does Model B (Recommendations) actually work? Aren't LLMs notoriously bad at math?"**
+Model B does not use an LLM for math. It is an orchestration pipeline:
+1. It systematically generates valid circular sourcing candidates (e.g., swapping to renewable energy).
+2. It runs those candidates through the exact same deterministic Python engine used for the dashboard to compute the exact `delta_co2e_kg`.
+3. Finally, it uses a trained LightGBM ranker to sort the candidates based on potential impact and estimated feasibility.
+**Code basis:** `backend/ml/model_b/service.py → get_recommendations_for_supplier()`
+**What we can safely claim:** The projected savings are mathematically accurate based on our engine.
+**Limitation:** The feasibility of a recommendation (e.g., whether a supplier *can* actually switch to rail) is an ML estimate, not a guaranteed business reality.
+
+**"What happens when data is missing? How accurate is your model?"**
+When users upload CSV data with missing fields (like energy or material quantities), Model A kicks in. It uses a peer-group approach—averaging data from similar suppliers within the same tier and material category. Records generated this way are explicitly flagged as `modeled` in the database, preserving data lineage.
+**Code basis:** `backend/ml/model_a/peer_group.py`
+**What we can safely claim:** We automatically estimate missing data using peer benchmarking to keep the dashboard functional without blocking the user.
+**Limitation:** The accuracy heavily depends on the diversity and size of the existing supplier dataset. If the peer group is small, the gap-fill is just a rough proxy.
+
+**"Is this scalable? What happens with 10,000 suppliers?"**
+The current architecture has bottlenecks. Right now, updating a single emission factor triggers a synchronous, cascading recalculation across the entire database (`calculate_and_rank` and `refresh_recommendations`). We are using SQLite for the demo to minimize setup friction.
+**Code basis:** `backend/app/main.py → update_factor()`
+**What we can safely claim:** The computational math itself is extremely fast (~0.030 ms/call per the benchmark).
+**Limitation:** The synchronous cascade and SQLite database would block the event loop in production at scale. We would need to migrate to PostgreSQL (which the ORM already supports via `DATABASE_URL`) and move the recalculation to a background worker (like Celery/Redis).
+
+**"Is your application secure?"**
+For this hackathon, we built working JWT authentication with password hashing, but there is a major architectural gap: lack of strict organization-level data scoping. While you must be logged in to view data, the business logic currently queries against a hardcoded demo organization (`org_apex`) or pulls all records regardless of the user's `org_id`.
+**Code basis:** `backend/app/main.py` (business routes don't aggressively filter by user's `org_id`).
+**What we can safely claim:** We implemented real credential validation and JWT issuance.
+**Limitation:** It is not currently safe for multi-tenant SaaS deployment until data isolation by `org_id` is enforced on every query.
+
+**"Where does your data come from? Is it real?"**
+The data shown in the dashboard is primarily synthetic demo data seeded by the backend at startup. It was generated to represent a realistic manufacturing supply chain (e.g., steel, aluminum, road/rail logistics) to demonstrate the engine's capabilities.
+**Code basis:** `backend/app/repository.py → seed_demo()`
+**What we can safely claim:** The system natively supports uploading real corporate data via CSV, and computes it accurately.
+**Limitation:** The absolute carbon numbers shown in the demo are illustrative.
+
+**"Why is this better than the obvious solution, which is just using a massive Excel spreadsheet?"**
+Excel breaks down when mapping multi-tier dependencies (Tier 1 -> Tier 2 -> Tier 3). Excel cannot automatically run an ML gap-fill on missing rows, and building interactive, instant what-if scenario simulations across a deep network is fragile in a spreadsheet. Carbonix centralizes the single source of truth, automates the gap-filling, and instantly cascades changes globally.
+**Code basis:** `backend/app/main.py → simulate_scenario_endpoint()`
+**What we can safely claim:** Carbonix provides relational tier mapping, instant scenario simulation, and automated missing-data handling that static spreadsheets cannot do.
+
+**"What part of the Problem Statement does this NOT solve yet?"**
+The problem statement asks for a solution for companies to trace emissions. While we have the calculation, visualization, and alternative recommendation layers fully built, we do not yet have live ERP or supplier API integrations. All data ingestion relies on manual CSV uploads or form entries.
+**Code basis:** Missing live ERP adapters.
+**What we can safely claim:** We have built the data ingestion contract, the calculation engine, and the analytics layer.
+**Limitation:** Integrating real-time live data directly from supplier IT systems is out of scope for v1.
+
+**"If the backend fails during the demo, why does the UI still seem to work sometimes?"**
+The frontend was designed with a development mock fallback. If the API cannot be reached, the frontend services automatically route to static fixture data so the UI doesn't crash completely.
+**Code basis:** `frontend/src/services/api.ts` (and `mockData.ts`).
+**What we can safely claim:** The UI has robust offline degradation.
+**Limitation:** A judge might click a button, see a success state, and think a real API call succeeded when it actually just triggered the local mock. If testing true backend logic, we must ensure the backend is running and the Network tab shows 200 OKs.
